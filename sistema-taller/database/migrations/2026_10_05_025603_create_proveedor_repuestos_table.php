@@ -13,7 +13,13 @@ return new class extends Migration
     {
         Schema::create('proveedor_repuestos', function (Blueprint $table) {
             $table->id();
+            $table->decimal('precio_compra', 10, 2);
+            $table->string('codigo_proveedor', 30)->nullable();
+            $table->foreignId('proveedor_id')->constrained('proveedors')->cascadeOnDelete();
+            $table->foreignId('repuesto_id')->constrained('repuestos')->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['proveedor_id', 'repuesto_id']);
         });
     }
 

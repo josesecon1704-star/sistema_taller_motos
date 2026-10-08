@@ -7,58 +7,35 @@ use Illuminate\Http\Request;
 
 class RolController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    //lista los elementos de una tabla
     public function index()
     {
-        //
+        return "rol r";
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    //gardar datos de la tabla CREAR
     public function store(Request $request)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Rol $rol)
+    //muestra solo un elemento de la tabla MOSTRAR UN ELEMENTO
+    public function show($id)
     {
-        //
+        return "show";
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Rol $rol)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    //permite modificar un elemento MODIFICAR
     public function update(Request $request, Rol $rol)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Rol $rol)
+    
+    //permite eliminar un elemento de una tabla ELIMINAR
+    public function destroy($id)
     {
         //
     }

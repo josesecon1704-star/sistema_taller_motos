@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('diagnosticos', function (Blueprint $table) {
             $table->id();
+    
+            $table->dateTime('fecha_diagnostico');
+            $table->string('tipo', 20)->default('inicial');
+            $table->text('descripcion_falla');
+            $table->string('estado', 20)->default('en_revision');
+
+            $table->foreignId('cita_id')->constrained('citas')->restrictOnDelete();
+            $table->foreignId('empleado_id')->constrained('empleados')->restrictOnDelete();
             $table->timestamps();
         });
     }

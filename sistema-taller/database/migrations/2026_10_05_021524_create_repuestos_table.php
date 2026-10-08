@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('repuestos', function (Blueprint $table) {
             $table->id();
+            $table->string('codigo', 30)->unique();
+            $table->string('nombre', 100);
+            $table->string('categoria', 20);
+            $table->string('foto', 255)->nullable();
+            $table->string('unidad_medida', 20)->default('unidad');
+            $table->decimal('precio_venta', 10, 2);
+            $table->unsignedInteger('stock_actual')->default(0);
+            $table->unsignedInteger('stock_minimo')->default(0);
+            $table->string('estado', 20)->default('activo');
             $table->timestamps();
         });
     }

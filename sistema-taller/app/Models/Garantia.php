@@ -6,5 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Garantia extends Model
 {
-    //
+    protected $fillable = [
+        'orden_trabajo_id', 'fecha_inicio', 'dias', 'km', 'cobertura', 'estado',
+    ];
 }

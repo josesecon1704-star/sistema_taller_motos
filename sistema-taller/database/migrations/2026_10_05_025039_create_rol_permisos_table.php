@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('rol_permisos', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('rol_id')->constrained('rols')->cascadeOnDelete();
+            $table->foreignId('permiso_id')->constrained('permisos')->cascadeOnDelete();
             $table->timestamps();
+
+        $table->unique(['rol_id', 'permiso_id']);
+            
         });
     }
 

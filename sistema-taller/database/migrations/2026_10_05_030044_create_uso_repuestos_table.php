@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('uso_repuestos', function (Blueprint $table) {
             $table->id();
+            $table->unsignedSmallInteger('cantidad');
+            $table->decimal('precio_unitario', 10, 2);
+            
+            $table->foreignId('orden_trabajo_id')->constrained('orden_trabajos')->restrictOnDelete();
+            $table->foreignId('repuesto_id')->constrained('repuestos')->restrictOnDelete();
             $table->timestamps();
         });
     }

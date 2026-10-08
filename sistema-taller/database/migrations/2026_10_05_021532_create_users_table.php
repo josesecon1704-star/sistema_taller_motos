@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,13 +14,23 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('email', 100)->unique();
             $table->string('password');
+            $table->string('estado', 20)->default('activo');
+            $table->timestamp('ultimo_acceso')->nullable();
+            $table->foreignId('rol_id')->constrained('rols')->restrictOnDelete();
+            $table->foreignId('cliente_id')->nullable()->unique()->constrained('clientes')->restrictOnDelete();
+            $table->foreignId('empleado_id')->nullable()->unique()->constrained('empleados')->restrictOnDelete();
+
             $table->rememberToken();
             $table->timestamps();
         });
+
+        // Regla: la cuenta es de un cliente O de un empleado, exactamente uno
+        DB::statement('ALTER TABLE users ADD CONSTRAINT users_cliente_o_empleado CHECK (
+            (cliente_id IS NOT NULL AND empleado_id IS NULL) OR
+            (cliente_id IS NULL AND empleado_id IS NOT NULL)
+        )');
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -43,7 +54,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };

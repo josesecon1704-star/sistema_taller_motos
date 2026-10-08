@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('detalle_cotizacion_servicios', function (Blueprint $table) {
             $table->id();
+            $table->decimal('precio_mano_obra', 10, 2);
+            $table->text('observaciones')->nullable();
+
+            $table->foreignId('cotizacion_id')->constrained('cotizacions')->cascadeOnDelete();
+            $table->foreignId('servicio_id')->constrained('servicios')->restrictOnDelete();
             $table->timestamps();
         });
     }

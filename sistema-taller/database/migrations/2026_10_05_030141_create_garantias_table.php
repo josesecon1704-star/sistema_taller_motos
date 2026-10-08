@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('garantias', function (Blueprint $table) {
             $table->id();
+            $table->date('fecha_inicio');
+            $table->unsignedSmallInteger('dias');
+            $table->unsignedSmallInteger('km');
+            $table->string('cobertura', 255)->nullable();
+            $table->string('estado', 20)->default('vigente');
+            
+            $table->foreignId('orden_trabajo_id')->unique()->constrained('orden_trabajos')->restrictOnDelete();
             $table->timestamps();
         });
     }

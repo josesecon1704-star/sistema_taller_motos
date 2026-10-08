@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('detalle_cotizacion_repuestos', function (Blueprint $table) {
             $table->id();
+            $table->unsignedSmallInteger('cantidad');
+            $table->decimal('precio_unitario', 10, 2);
+            
+            $table->foreignId('cotizacion_id')->constrained('cotizacions')->cascadeOnDelete();
+            $table->foreignId('repuesto_id')->constrained('repuestos')->restrictOnDelete();
             $table->timestamps();
         });
     }

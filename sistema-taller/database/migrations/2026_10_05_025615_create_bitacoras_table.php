@@ -13,7 +13,15 @@ return new class extends Migration
     {
         Schema::create('bitacoras', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+
+            $table->string('accion', 20);
+            $table->string('tabla_afectada', 50)->nullable();
+            $table->unsignedBigInteger('registro_id')->nullable();
+            $table->text('valor_anterior')->nullable();
+            $table->text('valor_nuevo')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+            
         });
     }
 
