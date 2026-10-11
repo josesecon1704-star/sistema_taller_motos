@@ -7,6 +7,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
 
 class User extends Authenticatable
 {
@@ -43,4 +45,47 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    //devuelve el nombre del empleado o cliente, y si no hay, el email. Sin esto, las vistas de abajo mostrarían el nombre vacío.
+    protected function name(): Attribute
+    {
+        return Attribute::get(
+            fn () => $this->empleado?->nombre ?? $this->cliente?->nombre ?? $this->email
+        );
+    }
+
+
+    public function rol(){
+        return $this->belongsTo(Rol::class);
+    }
+
+    public function cliente(){
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function empleado(){
+        return $this->belongsTo(Empleado::class);
+    }
+
+    public function bitacoras(){ 
+        return $this->hasMany(Bitacora::class); 
+    }
+    public function notificaciones(){ 
+        return $this->hasMany(Notificacion::class);
+    }
+
+
+    protected ?array $permisosCache = null;
+
+    public function tienePermiso(string $modulo, string $accion): bool
+    {
+        $this->permisosCache ??= $this->rol->permisos
+            ->map(fn ($p) => $p->modulo . '.' . $p->accion)
+            ->all();
+
+        return in_array($modulo . '.' . $accion, $this->permisosCache);
+    }
+
+
+    
 }

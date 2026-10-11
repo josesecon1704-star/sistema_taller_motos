@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Servicio;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\Middleware;
 
 class ServicioController extends Controller
 {
@@ -62,4 +63,13 @@ class ServicioController extends Controller
     {
         //
     }
+
+    public static function middleware(): array
+{
+    return [
+        new Middleware('permiso:servicios,mostrar', only: ['index']),
+        new Middleware('permiso:servicios,crear', only: ['create', 'store']),
+        new Middleware('permiso:servicios,modificar', only: ['edit', 'update', 'cambiarEstado']),
+    ];
+}
 }

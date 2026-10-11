@@ -12,4 +12,8 @@ class Bitacora extends Model
         'user_id', 'accion', 'tabla_afectada', 'registro_id',
         'valor_anterior', 'valor_nuevo',
     ];
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }

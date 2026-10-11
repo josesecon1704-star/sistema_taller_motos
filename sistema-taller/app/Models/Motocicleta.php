@@ -11,4 +11,14 @@ class Motocicleta extends Model
         'color', 'cilindrada', 'nro_motor', 'kilometraje', 'foto',
     ];
 
+    public function cliente(){
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function citas(){ 
+        return $this->hasMany(Cita::class); 
+    }
+    public function mantenimientos(){ 
+        return $this->hasMany(Mantenimiento::class); 
+    }
 }
