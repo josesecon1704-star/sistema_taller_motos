@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
 
         foreach ($cuentas as $c) {
             User::firstOrCreate(['email' => $c['email']], [
-                'password' => Hash::make('password'),
+                'password' => Hash::make(env('SEED_PASSWORD', 'password')),
                 'estado' => 'activo',
                 'rol_id' => Rol::where('nombre', $c['rol'])->value('id'),
                 'empleado_id' => Empleado::where('ci', $c['ci'])->value('id'),
