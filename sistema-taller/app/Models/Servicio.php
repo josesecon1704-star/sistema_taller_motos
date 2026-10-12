@@ -10,6 +10,10 @@ class Servicio extends Model
         'nombre', 'categoria', 'descripcion', 'precio_base', 'estado'
     ];
 
+    public const CATEGORIAS = [
+        'mantenimiento', 'frenos', 'motor', 'electrico', 'suspension', 'otros',
+    ]   ;
+
     
     public function tareas()          { return $this->hasMany(TareaServicio::class); }
     public function detallesCotizacion() { return $this->hasMany(DetalleCotizacionServicio::class); }
