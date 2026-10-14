@@ -12,12 +12,44 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+
+                    <!-- DASHBOARD -->
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    <!-- SERVICIOS -->
                     @can('permiso', ['servicios', 'mostrar'])
                         <x-nav-link :href="route('servicios.index')" :active="request()->routeIs('servicios.*')">
                             Servicios
+                        </x-nav-link>
+                    @endcan
+
+                    <!-- REPUESTOS -->
+                    @can('permiso', ['repuestos', 'mostrar'])
+                        <x-nav-link :href="route('repuestos.index')" :active="request()->routeIs('repuestos.*')">
+                            Repuestos
+                        </x-nav-link>
+                    @endcan
+
+                    <!-- PROVEEDOR -->
+                    @can('permiso', ['proveedores', 'mostrar'])
+                        <x-nav-link :href="route('proveedores.index')" :active="request()->routeIs('proveedores.*')">
+                            Proveedores
+                        </x-nav-link>
+                    @endcan
+
+                    <!-- CLIENTE -->
+                    @can('permiso', ['clientes', 'mostrar'])
+                        <x-nav-link :href="route('clientes.index')" :active="request()->routeIs('clientes.*')">
+                            Clientes
+                        </x-nav-link>
+                    @endcan
+                    
+                    <!-- EMPLEADOS -->
+                    @can('permiso', ['empleados', 'mostrar'])
+                        <x-nav-link :href="route('empleados.index')" :active="request()->routeIs('empleados.*')">
+                            Empleados
                         </x-nav-link>
                     @endcan
                 </div>

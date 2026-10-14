@@ -16,6 +16,24 @@ class Empleado extends Model
         'fecha_contratacion',
     ];
 
+    public const CARGOS = [
+    'administrador' => 'Administrador',
+    'jefe_taller'   => 'Jefe de Taller',
+    'mecanico'      => 'Mecánico',
+];
+
+    // Nombre del rol (tabla rols) que corresponde a cada cargo
+    public const ROL_POR_CARGO = [
+        'administrador' => 'Administrador',
+        'jefe_taller'   => 'Jefe de Taller',
+        'mecanico'      => 'Mecanico',
+    ];
+
+    protected function casts(): array
+    {
+        return ['fecha_contratacion' => 'date'];
+    }
+
     public function usuario(){
         return $this->hasOne(User::class);
     }

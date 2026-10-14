@@ -18,6 +18,19 @@ class MovimientoInventario extends Model
         'observaciones',
     ];
 
+    public const MOVIMIENTOS = [
+        'compra'       => ['entrada', 'compra', 'Compra a proveedor'],
+        'devolucion'   => ['entrada', 'devolucion', 'Devolución'],
+        'ajuste_mas'   => ['entrada', 'ajuste', 'Ajuste (aumenta)'],
+        'merma'        => ['salida', 'merma', 'Merma / pérdida'],
+        'ajuste_menos' => ['salida', 'ajuste', 'Ajuste (disminuye)'],
+    ];
+
+    protected function casts(): array
+    {
+        return ['fecha_movimiento' => 'datetime'];
+    }
+
     public function repuesto(){
         return $this->belongsTo(Repuesto::class);
     }

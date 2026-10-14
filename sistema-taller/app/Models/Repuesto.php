@@ -10,6 +10,11 @@ class Repuesto extends Model
         'codigo', 'nombre', 'categoria','foto', 'unidad_medida',
         'precio_venta', 'stock_actual', 'stock_minimo', 'estado',
     ];
+    public const CATEGORIAS = [
+        'lubricantes', 'frenos', 'electrico', 'motor', 'transmision', 'otros',
+    ];
+
+    public const UNIDADES = ['unidad', 'juego', 'par'];
 
     public function usos()               { return $this->hasMany(UsoRepuesto::class); }
     public function detallesCotizacion() { return $this->hasMany(DetalleCotizacionRepuesto::class); }

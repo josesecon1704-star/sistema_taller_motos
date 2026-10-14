@@ -15,6 +15,10 @@ class Cliente extends Model
         'tipo',
     ];
 
+    public const TIPOS_DOCUMENTO = ['ci', 'nit', 'pasaporte'];
+
+    public const TIPOS = ['particular', 'empresa'];
+
     public function usuario()
     {
         return $this->hasOne(User::class);
