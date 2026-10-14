@@ -42,6 +42,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'ultimo_acceso' => 'datetime',
             'password' => 'hashed',
         ];
     }
