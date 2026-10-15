@@ -45,11 +45,23 @@
                             Clientes
                         </x-nav-link>
                     @endcan
-                    
+
                     <!-- EMPLEADOS -->
                     @can('permiso', ['empleados', 'mostrar'])
                         <x-nav-link :href="route('empleados.index')" :active="request()->routeIs('empleados.*')">
                             Empleados
+                        </x-nav-link>
+                    @endcan
+                    <!-- Bitacora -->
+                    @can('permiso', ['bitacora', 'mostrar'])
+                        <x-nav-link :href="route('bitacora.index')" :active="request()->routeIs('bitacora.*')">
+                            Bitácora
+                        </x-nav-link>
+                    @endcan
+
+                    @can('permiso', ['motocicletas', 'mostrar'])
+                        <x-nav-link :href="route('motocicletas.index')" :active="request()->routeIs('motocicletas.*')">
+                            {{ Auth::user()->esCliente() ? 'Mis motocicletas' : 'Motocicletas' }}
                         </x-nav-link>
                     @endcan
                 </div>

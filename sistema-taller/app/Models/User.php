@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Observers\BitacoraObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
-
+#[ObservedBy(BitacoraObserver::class)]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -21,8 +23,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'email', 'password', 'estado', 'ultimo_acceso',
-        'rol_id', 'cliente_id', 'empleado_id',
+        'email',
+        'password',
+        'estado',
+        'ultimo_acceso',
+        'rol_id',
+        'cliente_id',
+        'empleado_id',
     ];
 
     /**
@@ -51,40 +58,51 @@ class User extends Authenticatable
     protected function name(): Attribute
     {
         return Attribute::get(
-            fn () => $this->empleado?->nombre ?? $this->cliente?->nombre ?? $this->email
+            fn() => $this->empleado?->nombre ?? $this->cliente?->nombre ?? $this->email
         );
     }
-
-
-    public function rol(){
-        return $this->belongsTo(Rol::class);
-    }
-
-    public function cliente(){
-        return $this->belongsTo(Cliente::class);
-    }
-
-    public function empleado(){
-        return $this->belongsTo(Empleado::class);
-    }
-
-    public function bitacoras(){ 
-        return $this->hasMany(Bitacora::class); 
-    }
-    public function notificaciones(){ 
-        return $this->hasMany(Notificacion::class);
-    }
-
 
     protected ?array $permisosCache = null;
 
     public function tienePermiso(string $modulo, string $accion): bool
     {
         $this->permisosCache ??= $this->rol->permisos
-            ->map(fn ($p) => $p->modulo . '.' . $p->accion)
+            ->map(fn($p) => $p->modulo . '.' . $p->accion)
             ->all();
 
         return in_array($modulo . '.' . $accion, $this->permisosCache);
+    }
+
+    public function esCliente(): bool
+    {
+        return $this->cliente_id !== null;
+    }
+
+
+    
+
+    public function rol()
+    {
+        return $this->belongsTo(Rol::class);
+    }
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function empleado()
+    {
+        return $this->belongsTo(Empleado::class);
+    }
+
+    public function bitacoras()
+    {
+        return $this->hasMany(Bitacora::class);
+    }
+    public function notificaciones()
+    {
+        return $this->hasMany(Notificacion::class);
     }
 
 

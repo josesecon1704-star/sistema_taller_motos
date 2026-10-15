@@ -3,63 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bitacora;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class BitacoraController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request): View
     {
-        //
-    }
+        $registros = Bitacora::query()
+            ->with(['user.empleado', 'user.cliente'])
+            ->when($request->user_id, fn ($q, $id) => $q->where('user_id', $id))
+            ->when($request->accion, fn ($q, $a) => $q->where('accion', $a))
+            ->when($request->tabla, fn ($q, $t) => $q->where('tabla_afectada', $t))
+            ->when($request->desde, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
+            ->when($request->hasta, fn ($q, $h) => $q->whereDate('created_at', '<=', $h))
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Bitacora $bitacora)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Bitacora $bitacora)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Bitacora $bitacora)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Bitacora $bitacora)
-    {
-        //
+        return view('bitacora.index', [
+            'registros' => $registros,
+            'usuarios'  => User::orderBy('email')->get(['id', 'email']),
+            'acciones'  => Bitacora::distinct()->orderBy('accion')->pluck('accion'),
+            'tablas'    => Bitacora::whereNotNull('tabla_afectada')->distinct()->orderBy('tabla_afectada')->pluck('tabla_afectada'),
+        ]);
     }
 }

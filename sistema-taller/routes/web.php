@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\MotocicletaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\ServicioController;
@@ -105,6 +107,16 @@ Route::middleware('auth')->group(function () {
         ->name('empleados.cuenta');
     Route::post('empleados/{empleado}/cuenta', [EmpleadoController::class, 'guardarCuenta'])
         ->name('empleados.cuenta.store');
+
+//BITACORA
+    Route::get('bitacora', [BitacoraController::class, 'index'])
+    ->middleware('permiso:bitacora,mostrar')
+    ->name('bitacora.index');
+
+//MOTOCICLETA
+    Route::resource('motocicletas', MotocicletaController::class)
+    ->except(['destroy'])
+    ->parameters(['motocicletas' => 'motocicleta']);
 
 });
 
