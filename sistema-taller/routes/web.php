@@ -9,7 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\ServicioController;
 use App\Http\Controllers\RepuestoController;
-
+use App\Http\Controllers\RolController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -42,7 +42,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 //Servicios
 Route::middleware('auth')->group(function () {
 
-//SERVICIOS
+    //SERVICIOS
     Route::resource('servicios', ServicioController::class)
         ->except(['show', 'destroy'])
         ->parameters(['servicios' => 'servicio']);
@@ -50,7 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('servicios/{servicio}/estado', [ServicioController::class, 'cambiarEstado'])
         ->name('servicios.estado');
 
-//REPUESTOS
+    //REPUESTOS
     Route::resource('repuestos', RepuestoController::class)
         ->except(['show', 'destroy'])
         ->parameters(['repuestos' => 'repuesto']);
@@ -59,15 +59,15 @@ Route::middleware('auth')->group(function () {
         ->name('repuestos.estado');
 
     Route::get('repuestos/{repuesto}/movimiento', [RepuestoController::class, 'movimiento'])
-    ->name('repuestos.movimiento');
+        ->name('repuestos.movimiento');
 
     Route::post('repuestos/{repuesto}/movimiento', [RepuestoController::class, 'registrarMovimiento'])
         ->name('repuestos.movimiento.store');
 
-//PROVEEDOR
+    //PROVEEDOR
     Route::resource('proveedores', ProveedorController::class)
-    ->except(['show', 'destroy'])
-    ->parameters(['proveedores' => 'proveedor']);
+        ->except(['show', 'destroy'])
+        ->parameters(['proveedores' => 'proveedor']);
 
     Route::patch('proveedores/{proveedor}/estado', [ProveedorController::class, 'cambiarEstado'])
         ->name('proveedores.estado');
@@ -77,17 +77,17 @@ Route::middleware('auth')->group(function () {
 
     Route::post('proveedores/{proveedor}/repuestos', [ProveedorController::class, 'vincularRepuesto'])
         ->name('proveedores.repuestos.store');
-        
+
     Route::put('proveedores/{proveedor}/repuestos/{repuesto}', [ProveedorController::class, 'actualizarVinculo'])
         ->name('proveedores.repuestos.update');
-        
+
     Route::delete('proveedores/{proveedor}/repuestos/{repuesto}', [ProveedorController::class, 'desvincularRepuesto'])
         ->name('proveedores.repuestos.destroy');
 
-//CLIENTES
+    //CLIENTES
     Route::resource('clientes', ClienteController::class)
-    ->except(['destroy'])
-    ->parameters(['clientes' => 'cliente']);
+        ->except(['destroy'])
+        ->parameters(['clientes' => 'cliente']);
 
     Route::get('clientes/{cliente}/cuenta', [ClienteController::class, 'cuenta'])
         ->name('clientes.cuenta');
@@ -95,10 +95,10 @@ Route::middleware('auth')->group(function () {
     Route::post('clientes/{cliente}/cuenta', [ClienteController::class, 'guardarCuenta'])
         ->name('clientes.cuenta.store');
 
-//EMPLEADOS
+    //EMPLEADOS
     Route::resource('empleados', EmpleadoController::class)
-    ->except(['destroy'])
-    ->parameters(['empleados' => 'empleado']);
+        ->except(['destroy'])
+        ->parameters(['empleados' => 'empleado']);
 
     Route::patch('empleados/{empleado}/estado', [EmpleadoController::class, 'cambiarEstado'])
         ->name('empleados.estado');
@@ -108,16 +108,19 @@ Route::middleware('auth')->group(function () {
     Route::post('empleados/{empleado}/cuenta', [EmpleadoController::class, 'guardarCuenta'])
         ->name('empleados.cuenta.store');
 
-//BITACORA
+    //BITACORA
     Route::get('bitacora', [BitacoraController::class, 'index'])
-    ->middleware('permiso:bitacora,mostrar')
-    ->name('bitacora.index');
+        ->middleware('permiso:bitacora,mostrar')
+        ->name('bitacora.index');
 
-//MOTOCICLETA
+    //MOTOCICLETA
     Route::resource('motocicletas', MotocicletaController::class)
-    ->except(['destroy'])
-    ->parameters(['motocicletas' => 'motocicleta']);
+        ->except(['destroy'])
+        ->parameters(['motocicletas' => 'motocicleta']);
 
+    Route::get('roles', [RolController::class, 'index'])->name('roles.index');
+    Route::get('roles/{rol}/permisos', [RolController::class, 'permisos'])->name('roles.permisos');
+    Route::put('roles/{rol}/permisos', [RolController::class, 'actualizarPermisos'])->name('roles.permisos.update');
 });
 
 

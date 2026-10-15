@@ -18,12 +18,23 @@ class PermisoSeeder extends Seeder
         $crud = ['crear', 'mostrar', 'modificar', 'eliminar'];
 
         $modulos = [
-            'usuarios' => $crud, 'roles' => $crud, 'clientes' => $crud,
-            'empleados' => $crud, 'motocicletas' => $crud, 'citas' => $crud,
-            'diagnosticos' => $crud, 'cotizaciones' => $crud, 'ordenes' => $crud,
-            'servicios' => $crud, 'repuestos' => $crud, 'proveedores' => $crud,
-            'pagos' => $crud, 'garantias' => $crud, 'mantenimientos' => $crud,
-            'bitacora' => ['mostrar'], 'finanzas' => ['mostrar'],
+            'usuarios' => $crud,
+            'roles' => $crud,
+            'clientes' => $crud,
+            'empleados' => $crud,
+            'motocicletas' => $crud,
+            'citas' => $crud,
+            'diagnosticos' => $crud,
+            'cotizaciones' => $crud,
+            'ordenes' => $crud,
+            'servicios' => $crud,
+            'repuestos' => $crud,
+            'proveedores' => $crud,
+            'pagos' => $crud,
+            'garantias' => $crud,
+            'mantenimientos' => $crud,
+            'bitacora' => ['mostrar'],
+            'finanzas' => ['mostrar'],
         ];
 
         $verbos = ['crear' => 'Crear', 'mostrar' => 'Ver', 'modificar' => 'Editar', 'eliminar' => 'Eliminar'];
@@ -40,18 +51,28 @@ class PermisoSeeder extends Seeder
         // Administrador: todo
         $this->asignar('Administrador', Permiso::pluck('id'));
 
-        // Jefe de Taller: todo menos usuarios, roles, bitácora y eliminar
-        $this->asignar('Jefe de Taller',
+        // Jefe de Taller: operación del taller; en los catálogos solo consulta
+        $this->asignar(
+            'Jefe de Taller',
             Permiso::whereNotIn('modulo', ['usuarios', 'roles', 'bitacora'])
-                ->where('accion', '!=', 'eliminar')->pluck('id'));
-
+                ->where('accion', '!=', 'eliminar')
+                ->whereNot(function ($q) {
+                    $q->whereIn('modulo', ['servicios', 'repuestos', 'proveedores'])
+                        ->whereIn('accion', ['crear', 'modificar']);
+                })
+                ->pluck('id')
+        );
         // Mecánico
         $this->asignar('Mecanico', $this->idsPara([
             'diagnosticos' => ['crear', 'mostrar', 'modificar'],
             'ordenes' => ['mostrar', 'modificar'],
             'cotizaciones' => ['mostrar'],
-            'citas' => ['mostrar'], 'clientes' => ['mostrar'], 'motocicletas' => ['mostrar'],
-            'servicios' => ['mostrar'], 'repuestos' => ['mostrar'], 'mantenimientos' => ['mostrar'],
+            'citas' => ['mostrar'],
+            'clientes' => ['mostrar'],
+            'motocicletas' => ['mostrar'],
+            'servicios' => ['mostrar'],
+            'repuestos' => ['mostrar'],
+            'mantenimientos' => ['mostrar'],
         ]));
 
         // Cliente (ver solo lo propio se controla en el código, con policies)
@@ -59,8 +80,10 @@ class PermisoSeeder extends Seeder
             'citas' => ['crear', 'mostrar'],
             'motocicletas' => ['crear', 'mostrar', 'modificar'],
             'cotizaciones' => ['mostrar', 'modificar'],
-            'ordenes' => ['mostrar'], 'pagos' => ['mostrar'],
-            'garantias' => ['mostrar'], 'mantenimientos' => ['mostrar'],
+            'ordenes' => ['mostrar'],
+            'pagos' => ['mostrar'],
+            'garantias' => ['mostrar'],
+            'mantenimientos' => ['mostrar'],
         ]));
     }
 
@@ -68,7 +91,7 @@ class PermisoSeeder extends Seeder
     {
         return Permiso::where(function ($q) use ($modulos) {
             foreach ($modulos as $modulo => $acciones) {
-                $q->orWhere(fn ($w) => $w->where('modulo', $modulo)->whereIn('accion', $acciones));
+                $q->orWhere(fn($w) => $w->where('modulo', $modulo)->whereIn('accion', $acciones));
             }
         })->pluck('id');
     }
@@ -77,12 +100,13 @@ class PermisoSeeder extends Seeder
     {
         $rolId = Rol::where('nombre', $nombreRol)->value('id');
 
-        $filas = collect($ids)->map(fn ($id) => [
-            'rol_id' => $rolId, 'permiso_id' => $id,
-            'created_at' => now(), 'updated_at' => now(),
+        $filas = collect($ids)->map(fn($id) => [
+            'rol_id' => $rolId,
+            'permiso_id' => $id,
+            'created_at' => now(),
+            'updated_at' => now(),
         ])->all();
 
         DB::table('rol_permisos')->insertOrIgnore($filas);
     }
-    
 }

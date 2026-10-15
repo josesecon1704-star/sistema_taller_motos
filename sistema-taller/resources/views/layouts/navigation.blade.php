@@ -59,6 +59,12 @@
                         </x-nav-link>
                     @endcan
 
+                    @can('permiso', ['roles', 'mostrar'])
+                        <x-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
+                            Roles y permisos
+                        </x-nav-link>
+                    @endcan
+
                     @can('permiso', ['motocicletas', 'mostrar'])
                         <x-nav-link :href="route('motocicletas.index')" :active="request()->routeIs('motocicletas.*')">
                             {{ Auth::user()->esCliente() ? 'Mis motocicletas' : 'Motocicletas' }}
