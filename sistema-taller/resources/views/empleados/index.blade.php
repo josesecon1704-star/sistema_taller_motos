@@ -22,17 +22,17 @@
                 <div class="mb-4 p-3 bg-red-100 text-red-800 rounded">{{ session('error') }}</div>
             @endif
 
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <form method="GET" class="flex flex-wrap gap-2 items-center">
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
+                <form method="GET" class="flex flex-wrap gap-2 items-center mb-4">
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre o CI"
-                           class="border-gray-300 rounded-md shadow-sm w-64 w-full sm:w-auto">
-                    <select name="cargo" class="border-gray-300 rounded-md shadow-sm">
+                           class="border-gray-300 rounded-md shadow-sm w-full sm:w-64">
+                    <select name="cargo" class="border-gray-300 rounded-md shadow-sm w-full sm:w-auto">
                         <option value="">Todos los cargos</option>
                         @foreach (\App\Models\Empleado::CARGOS as $clave => $etiqueta)
                             <option value="{{ $clave }}" @selected(request('cargo') === $clave)>{{ $etiqueta }}</option>
                         @endforeach
                     </select>
-                    <select name="estado" class="border-gray-300 rounded-md shadow-sm">
+                    <select name="estado" class="border-gray-300 rounded-md shadow-sm w-full sm:w-auto">
                         <option value="">Todos los estados</option>
                         <option value="activo" @selected(request('estado') === 'activo')>Activo</option>
                         <option value="inactivo" @selected(request('estado') === 'inactivo')>Inactivo</option>
@@ -40,14 +40,15 @@
                     <x-primary-button>Filtrar</x-primary-button>
                 </form>
 
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
                     <thead class="text-gray-600 border-b">
                         <tr>
                             <th class="py-2">Nombre</th>
-                            <th>CI</th>
+                            <th class="hidden sm:table-cell">CI</th>
                             <th>Cargo</th>
-                            <th>Teléfono</th>
-                            <th>Cuenta</th>
+                            <th class="hidden md:table-cell">Teléfono</th>
+                            <th class="hidden md:table-cell">Cuenta</th>
                             <th>Estado</th>
                             <th></th>
                         </tr>
@@ -59,10 +60,10 @@
                                     <a href="{{ route('empleados.show', $empleado) }}"
                                        class="text-indigo-600 hover:underline">{{ $empleado->nombre }}</a>
                                 </td>
-                                <td>{{ $empleado->ci }}</td>
+                                <td class="hidden sm:table-cell">{{ $empleado->ci }}</td>
                                 <td>{{ \App\Models\Empleado::CARGOS[$empleado->cargo] ?? $empleado->cargo }}</td>
-                                <td>{{ $empleado->telefono }}</td>
-                                <td>{{ $empleado->usuario_exists ? 'Con cuenta' : 'Sin cuenta' }}</td>
+                                <td class="hidden md:table-cell">{{ $empleado->telefono }}</td>
+                                <td class="hidden md:table-cell">{{ $empleado->usuario_exists ? 'Con cuenta' : 'Sin cuenta' }}</td>
                                 <td>
                                     <span class="px-2 py-1 text-xs rounded
                                         {{ $empleado->estado === 'activo' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700' }}">
@@ -91,6 +92,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
 
                 <div class="mt-4">{{ $empleados->links() }}</div>
             </div>

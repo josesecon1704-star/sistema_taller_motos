@@ -13,19 +13,20 @@
                 <div class="mb-4 p-3 bg-red-100 text-red-800 rounded">{{ session('error') }}</div>
             @endif
 
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
                 <p class="text-sm text-gray-600 mb-4">
                     Cada usuario recibe los permisos de su rol. Los cambios se aplican en la siguiente
                     pantalla que abra la persona, sin necesidad de volver a iniciar sesión.
                 </p>
 
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
                     <thead class="text-gray-600 border-b">
                         <tr>
                             <th class="py-2">Rol</th>
-                            <th>Descripción</th>
-                            <th class="text-right">Usuarios</th>
-                            <th class="text-right">Permisos</th>
+                            <th class="hidden md:table-cell">Descripción</th>
+                            <th class="text-right hidden sm:table-cell">Usuarios</th>
+                            <th class="text-right hidden sm:table-cell">Permisos</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -33,9 +34,9 @@
                         @foreach ($roles as $rol)
                             <tr class="border-b">
                                 <td class="py-2 font-medium">{{ $rol->nombre }}</td>
-                                <td>{{ $rol->descripcion }}</td>
-                                <td class="text-right">{{ $rol->usuarios_count }}</td>
-                                <td class="text-right">{{ $rol->permisos_count }}</td>
+                                <td class="hidden md:table-cell">{{ $rol->descripcion }}</td>
+                                <td class="text-right hidden sm:table-cell">{{ $rol->usuarios_count }}</td>
+                                <td class="text-right hidden sm:table-cell">{{ $rol->permisos_count }}</td>
                                 <td class="text-right whitespace-nowrap">
                                     @if ($rol->nombre === 'Administrador')
                                         <span class="text-xs text-gray-500">Acceso total (bloqueado)</span>
@@ -52,6 +53,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>

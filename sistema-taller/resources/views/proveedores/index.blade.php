@@ -19,20 +19,21 @@
                 <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
             @endif
 
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <form method="GET" class="flex flex-wrap gap-2 items-center">
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
+                <form method="GET" class="flex flex-wrap gap-2 items-center mb-4">
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre o NIT"
-                           class="border-gray-300 rounded-md shadow-sm w-64 w-full sm:w-auto">
+                           class="border-gray-300 rounded-md shadow-sm w-full sm:w-64">
                     <x-primary-button>Buscar</x-primary-button>
                 </form>
 
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
                     <thead class="text-gray-600 border-b">
                         <tr>
                             <th class="py-2">Nombre</th>
-                            <th>NIT</th>
-                            <th>Teléfono</th>
-                            <th class="text-right">Repuestos</th>
+                            <th class="hidden sm:table-cell">NIT</th>
+                            <th class="hidden sm:table-cell">Teléfono</th>
+                            <th class="text-right hidden sm:table-cell">Repuestos</th>
                             <th>Estado</th>
                             <th></th>
                         </tr>
@@ -41,9 +42,9 @@
                         @forelse ($proveedores as $proveedor)
                             <tr class="border-b">
                                 <td class="py-2">{{ $proveedor->nombre }}</td>
-                                <td>{{ $proveedor->nit ?? '—' }}</td>
-                                <td>{{ $proveedor->telefono }}</td>
-                                <td class="text-right">{{ $proveedor->repuestos_count }}</td>
+                                <td class="hidden sm:table-cell">{{ $proveedor->nit ?? '—' }}</td>
+                                <td class="hidden sm:table-cell">{{ $proveedor->telefono }}</td>
+                                <td class="text-right hidden sm:table-cell">{{ $proveedor->repuestos_count }}</td>
                                 <td>
                                     <span class="px-2 py-1 text-xs rounded
                                         {{ $proveedor->estado === 'activo' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700' }}">
@@ -72,6 +73,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
 
                 <div class="mt-4">{{ $proveedores->links() }}</div>
             </div>

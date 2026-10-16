@@ -19,11 +19,11 @@
                 <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
             @endif
 
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <form method="GET" class="flex flex-wrap gap-2 items-center">
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
+                <form method="GET" class="flex flex-wrap gap-2 items-center mb-4">
                     <input type="text" name="q" value="{{ request('q') }}"
-                        placeholder="Buscar por nombre o código" class="border-gray-300 rounded-md shadow-sm w-64 w-full sm:w-auto">
-                    <select name="categoria" class="border-gray-300 rounded-md shadow-sm">
+                        placeholder="Buscar por nombre o código" class="border-gray-300 rounded-md shadow-sm w-full sm:w-64">
+                    <select name="categoria" class="border-gray-300 rounded-md shadow-sm w-full sm:w-auto">
                         <option value="">Todas las categorías</option>
                         @foreach (\App\Models\Repuesto::CATEGORIAS as $cat)
                             <option value="{{ $cat }}" @selected(request('categoria') === $cat)>{{ ucfirst($cat) }}
@@ -38,15 +38,16 @@
                     <x-primary-button>Filtrar</x-primary-button>
                 </form>
 
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
                     <thead class="text-gray-600 border-b">
                         <tr>
                             <th class="py-2">Código</th>
                             <th>Nombre</th>
-                            <th>Categoría</th>
-                            <th class="text-right">Precio</th>
+                            <th class="hidden md:table-cell">Categoría</th>
+                            <th class="text-right hidden sm:table-cell">Precio</th>
                             <th class="text-right">Stock</th>
-                            <th>Estado</th>
+                            <th class="hidden sm:table-cell">Estado</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -55,8 +56,8 @@
                             <tr class="border-b">
                                 <td class="py-2">{{ $repuesto->codigo }}</td>
                                 <td>{{ $repuesto->nombre }}</td>
-                                <td>{{ ucfirst($repuesto->categoria) }}</td>
-                                <td class="text-right">Bs {{ number_format($repuesto->precio_venta, 2) }}</td>
+                                <td class="hidden md:table-cell">{{ ucfirst($repuesto->categoria) }}</td>
+                                <td class="text-right hidden sm:table-cell">Bs {{ number_format($repuesto->precio_venta, 2) }}</td>
                                 <td class="text-right">
                                     @if ($repuesto->stock_actual <= $repuesto->stock_minimo)
                                         <span class="px-2 py-1 text-xs rounded bg-red-100 text-red-800">
@@ -66,7 +67,7 @@
                                         {{ $repuesto->stock_actual }}
                                     @endif
                                 </td>
-                                <td>
+                                <td class="hidden sm:table-cell">
                                     <span
                                         class="px-2 py-1 text-xs rounded
                                         {{ $repuesto->estado === 'activo' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700' }}">
@@ -99,6 +100,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
 
                 <div class="mt-4">{{ $repuestos->links() }}</div>
             </div>
