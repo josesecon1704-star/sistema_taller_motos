@@ -7,7 +7,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
 
-                <form method="GET" class="flex flex-wrap items-end gap-2 mb-4">
+                <form method="GET" class="flex flex-wrap gap-2 items-center">
                     <select name="user_id" class="border-gray-300 rounded-md shadow-sm">
                         <option value="">Todos los usuarios</option>
                         @foreach ($usuarios as $u)

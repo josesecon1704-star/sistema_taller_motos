@@ -20,9 +20,9 @@
             @endif
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <form method="GET" class="flex flex-wrap items-center gap-2 mb-4">
+                <form method="GET" class="flex flex-wrap gap-2 items-center">
                     <input type="text" name="q" value="{{ request('q') }}"
-                        placeholder="Buscar por nombre o código" class="border-gray-300 rounded-md shadow-sm w-64">
+                        placeholder="Buscar por nombre o código" class="border-gray-300 rounded-md shadow-sm w-64 w-full sm:w-auto">
                     <select name="categoria" class="border-gray-300 rounded-md shadow-sm">
                         <option value="">Todas las categorías</option>
                         @foreach (\App\Models\Repuesto::CATEGORIAS as $cat)

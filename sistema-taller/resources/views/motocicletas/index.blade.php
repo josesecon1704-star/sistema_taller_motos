@@ -22,10 +22,10 @@
             @endif
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <form method="GET" class="flex gap-2 mb-4">
+                <form method="GET" class="fleflex flex-wrap gap-2 items-center">
                     <input type="text" name="q" value="{{ request('q') }}"
                            placeholder="Buscar por placa, chasis, marca, modelo o dueño"
-                           class="border-gray-300 rounded-md shadow-sm w-96">
+                           class="border-gray-300 rounded-md shadow-sm w-96 w-full sm:w-auto">
                     <x-primary-button>Buscar</x-primary-button>
                 </form>
 

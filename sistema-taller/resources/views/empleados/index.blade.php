@@ -23,9 +23,9 @@
             @endif
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <form method="GET" class="flex flex-wrap gap-2 mb-4">
+                <form method="GET" class="flex flex-wrap gap-2 items-center">
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre o CI"
-                           class="border-gray-300 rounded-md shadow-sm w-64">
+                           class="border-gray-300 rounded-md shadow-sm w-64 w-full sm:w-auto">
                     <select name="cargo" class="border-gray-300 rounded-md shadow-sm">
                         <option value="">Todos los cargos</option>
                         @foreach (\App\Models\Empleado::CARGOS as $clave => $etiqueta)

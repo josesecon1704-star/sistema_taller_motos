@@ -52,7 +52,7 @@ class LoginRequest extends FormRequest
         
         $user = Auth::user();
         // La contraseña es correcta, pero la cuenta no puede entrar
-        if ($user->estado !== 'activo' || ! $user->rol) {
+        if ($user->estado !== 'activo' || !$user->rol) {
             Auth::logout();
             RateLimiter::hit($this->throttleKey());
 
