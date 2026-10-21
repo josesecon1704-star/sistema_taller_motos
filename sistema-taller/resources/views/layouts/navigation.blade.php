@@ -8,6 +8,7 @@
         ['modulo' => 'clientes',     'ruta' => 'clientes.index',     'activo' => 'clientes.*',     'icono' => '👥', 'texto' => 'Clientes'],
         ['modulo' => 'empleados',    'ruta' => 'empleados.index',    'activo' => 'empleados.*',    'icono' => '🧑‍🔧', 'texto' => 'Empleados'],
         ['modulo' => 'motocicletas', 'ruta' => 'motocicletas.index', 'activo' => 'motocicletas.*', 'icono' => '🏍️', 'texto' => $esCliente ? 'Mis motocicletas' : 'Motocicletas'],
+        ['modulo' => 'usuarios',     'ruta' => 'usuarios.index',     'activo' => 'usuarios.*',     'icono' => '👤', 'texto' => 'Usuarios'],
         ['modulo' => 'bitacora',     'ruta' => 'bitacora.index',     'activo' => 'bitacora.*',     'icono' => '📋', 'texto' => 'Bitácora'],
         ['modulo' => 'roles',        'ruta' => 'roles.index',        'activo' => 'roles.*',        'icono' => '🔐', 'texto' => 'Roles y permisos'],
     ];

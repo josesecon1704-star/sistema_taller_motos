@@ -10,6 +10,7 @@ use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\ServicioController;
 use App\Http\Controllers\RepuestoController;
 use App\Http\Controllers\RolController;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -121,6 +122,12 @@ Route::middleware('auth')->group(function () {
     Route::get('roles', [RolController::class, 'index'])->name('roles.index');
     Route::get('roles/{rol}/permisos', [RolController::class, 'permisos'])->name('roles.permisos');
     Route::put('roles/{rol}/permisos', [RolController::class, 'actualizarPermisos'])->name('roles.permisos.update');
+
+    //Usuarios
+    Route::resource('usuarios', UsuarioController::class)
+        ->only(['index', 'edit', 'update'])
+        ->parameters(['usuarios' => 'usuario']);
+    Route::patch('usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])->name('usuarios.estado');
 });
 
 
