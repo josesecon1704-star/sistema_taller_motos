@@ -39,7 +39,7 @@ class UsuarioController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('usuarios.index', [
+        return view('Usuarios.index', [
             'usuarios' => $usuarios,
             'roles' => Rol::orderBy('nombre')->get(),
         ]);
@@ -52,7 +52,7 @@ class UsuarioController extends Controller
                 ->with('error', 'Tu propia cuenta se edita desde "Mi perfil".');
         }
 
-        return view('usuarios.edit', ['usuario' => $usuario->load(['rol', 'empleado', 'cliente'])]);
+        return view('Usuarios.edit', ['usuario' => $usuario->load(['rol', 'empleado', 'cliente'])]);
     }
 
     public function update(UsuarioRequest $request, User $usuario): RedirectResponse
