@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Gestión de Cotizaciones (CU19) - Nueva Cotización
+            Gestión de Cotizaciones - Nueva Cotización
         </h2>
     </x-slot>
 
     <div class="py-6" x-data="cotizacionApp()">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
+
             <form action="{{ route('cotizaciones.store') }}" method="POST" class="space-y-6">
                 @csrf
 
@@ -24,7 +24,7 @@
                 <!-- DATOS GENERALES -->
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
                     <h3 class="text-lg font-bold text-gray-800 dark:text-white border-b pb-2">1. Información General</h3>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Nro. Cotización</label>
@@ -32,7 +32,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Seleccionar Diagnóstico (CU18)</label>
+                            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Seleccionar Diagnóstico</label>
                             <select name="diagnostico_id" required class="mt-1 block w-full border-gray-300 dark:bg-gray-700 dark:text-white rounded-md shadow-sm text-sm">
                                 <option value="">-- Seleccione un Diagnóstico --</option>
                                 @foreach($diagnosticos as $diag)

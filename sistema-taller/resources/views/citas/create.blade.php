@@ -1,113 +1,88 @@
+@php $esCliente = Auth::user()->esCliente(); @endphp
+
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Agendar Nueva Cita
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ $esCliente ? 'Solicitar cita' : 'Nueva cita' }}
         </h2>
     </x-slot>
 
-    <div class="container mx-auto px-4 py-6">
-        <div class="max-w-xl mx-auto bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-            <h2 class="text-2xl font-bold text-white mb-6">Registrar Cita</h2>
+    <div class="py-12">
+        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
+                @if ($motocicletas->isEmpty())
+                    <p class="text-sm text-gray-700">
+                        {{ $esCliente ? 'Primero registra tu motocicleta para poder solicitar una cita.' : 'No hay motocicletas registradas.' }}
+                    </p>
+                    @can('permiso', ['motocicletas', 'crear'])
+                        <a href="{{ route('motocicletas.create') }}"
+                           class="inline-block mt-4 px-4 py-2 bg-gray-800 text-white text-xs uppercase rounded-md">
+                            Registrar motocicleta
+                        </a>
+                    @endcan
+                @else
+                    <form method="POST" action="{{ route('citas.store') }}" class="space-y-4">
+                        @csrf
 
-            @if ($errors->any())
-                <div class="bg-red-500 text-white p-3 rounded mb-4">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+                        <div>
+                            <x-input-label for="motocicleta_id" value="Motocicleta" />
+                            <select id="motocicleta_id" name="motocicleta_id" required
+                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                <option value="">Selecciona una motocicleta</option>
+                                @foreach ($motocicletas as $moto)
+                                    <option value="{{ $moto->id }}" @selected(old('motocicleta_id') == $moto->id)>
+                                        {{ $moto->marca }} {{ $moto->modelo }} — {{ $moto->placa ?: 'sin placa' }}
+                                        @unless ($esCliente) ({{ $moto->cliente?->nombre }}) @endunless
+                                    </option>
+                                @endforeach
+                            </select>
+                            <x-input-error :messages="$errors->get('motocicleta_id')" class="mt-2" />
+                        </div>
 
-            <form action="{{ route('citas.store') }}" method="POST">
-                @csrf
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <x-input-label for="fecha" value="Fecha" />
+                                <x-text-input id="fecha" type="date" name="fecha" class="block mt-1 w-full"
+                                              :value="old('fecha')" min="{{ today()->format('Y-m-d') }}" required />
+                                <x-input-error :messages="$errors->get('fecha')" class="mt-2" />
+                            </div>
+                            <div>
+                                <x-input-label for="hora" value="Hora" />
+                                <x-text-input id="hora" type="time" name="hora" class="block mt-1 w-full"
+                                              :value="old('hora')" required />
+                                <x-input-error :messages="$errors->get('hora')" class="mt-2" />
+                            </div>
+                        </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Seleccionar Motocicleta (Placa - Marca)</label>
-                    <select name="idMotocicleta" style="color: #000000; background-color: #ffffff;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                        <option value="">— Seleccione una moto —</option>
-                        @foreach($motocicletas as $moto)
-                            <option value="{{ $moto->id }}">{{ $moto->placa }} - {{ $moto->marca }} {{ $moto->modelo }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                        <div>
+                            <x-input-label for="motivo" value="Motivo de la visita" />
+                            <textarea id="motivo" name="motivo" rows="2" maxlength="255" required
+                                      class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                      placeholder="Ej.: ruido en el motor, cambio de aceite...">{{ old('motivo') }}</textarea>
+                            <x-input-error :messages="$errors->get('motivo')" class="mt-2" />
+                        </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Motivo de la Cita</label>
-                    <input type="text" name="motivo" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" placeholder="Ej. Mantenimiento preventivo" required>
-                </div>
+                        @unless ($esCliente)
+                            <div>
+                                <x-input-label for="empleado_id" value="Mecánico asignado (opcional)" />
+                                <select id="empleado_id" name="empleado_id"
+                                        class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                    <option value="">Sin asignar</option>
+                                    @foreach ($empleados as $empleado)
+                                        <option value="{{ $empleado->id }}" @selected(old('empleado_id') == $empleado->id)>{{ $empleado->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('empleado_id')" class="mt-2" />
+                            </div>
+                        @endunless
 
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Fecha de la Cita</label>
-                    <input type="date" name="fecha" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Hora</label>
-                    <input type="time" name="Hora" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                </div>
-
-                <div class="flex justify-end mt-6">
-                    <a href="{{ route('citas.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded mr-2 hover:bg-gray-500 font-semibold">Cancelar</a>
-                    <button type="submit" style="background-color: #111827; color: #ffffff; padding: 8px 16px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer;">Guardar Cita</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</x-app-layout><x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Agendar Nueva Cita
-        </h2>
-    </x-slot>
-
-    <div class="container mx-auto px-4 py-6">
-        <div class="max-w-xl mx-auto bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-            <h2 class="text-2xl font-bold text-white mb-6">Registrar Cita</h2>
-
-            @if ($errors->any())
-                <div class="bg-red-500 text-white p-3 rounded mb-4">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('citas.store') }}" method="POST">
-                @csrf
-
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Seleccionar Motocicleta (Placa - Marca)</label>
-                    <select name="idMotocicleta" style="color: #000000; background-color: #ffffff;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                        <option value="">— Seleccione una moto —</option>
-                        @foreach($motocicletas as $moto)
-                            <option value="{{ $moto->id }}">{{ $moto->placa }} - {{ $moto->marca }} {{ $moto->modelo }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Motivo de la Cita</label>
-                    <input type="text" name="motivo" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" placeholder="Ej. Mantenimiento preventivo" required>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Fecha de la Cita</label>
-                    <input type="date" name="fecha" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Hora</label>
-                    <input type="time" name="Hora" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                </div>
-
-                <div class="flex justify-end mt-6">
-                    <a href="{{ route('citas.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded mr-2 hover:bg-gray-500 font-semibold">Cancelar</a>
-                    <button type="submit" style="background-color: #111827; color: #ffffff; padding: 8px 16px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer;">Guardar Cita</button>
-                </div>
-            </form>
+                        <div class="flex items-center justify-end gap-3">
+                            <a href="{{ route('citas.index') }}" class="text-sm text-gray-600 underline">Cancelar</a>
+                            <x-primary-button>{{ $esCliente ? 'Solicitar cita' : 'Registrar cita' }}</x-primary-button>
+                        </div>
+                    </form>
+                @endif
+            </div>
         </div>
     </div>
 </x-app-layout>

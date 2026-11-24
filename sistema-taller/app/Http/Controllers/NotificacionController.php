@@ -2,56 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notificacion;
+use App\Models\Repuesto;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
+/**
+ * CU07 - Visualizar notificaciones.
+ * Cada usuario ve solo sus notificaciones (las crean los demás módulos al ocurrir
+ * un evento). El personal que maneja repuestos ve además las alertas de stock bajo.
+ */
 class NotificacionController extends Controller
 {
-    public function index()
+    public function index(Request $request): View
     {
-        $notifications = collect();
+        $user = $request->user();
 
-        // 1. Repuestos con stock bajo (comparando stock actual contra el stock mínimo configurado)
-        try {
-            $lowStock = DB::table('repuestos')
-                ->whereColumn('stock_actual', '<=', 'stock_minimo')
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'tipo' => 'Stock Bajo',
-                        'titulo' => 'Repuesto con poco stock: ' . ($item->nombre ?? 'Sin nombre'),
-                        'mensaje' => 'Quedan solo ' . ($item->stock_actual ?? 0) . ' unidades disponibles.',
-                        'color' => 'yellow',
-                        'fecha' => now()->format('Y-m-d H:i')
-                    ];
-                });
-            $notifications = $notifications->merge($lowStock);
-        } catch (\Exception $e) {}
+        $notificaciones = Notificacion::where('user_id', $user->id)
+            ->latest()
+            ->paginate(15);
 
-        // 2. Servicios Inactivos (Atrapa cualquier variante de desactivado: texto o número)
-        try {
-            $inactiveServices = DB::table('servicios')
-                ->where(function($query) {
-                    $query->where('estado', 'Inactivo')
-                          ->orWhere('estado', 'inactivo')
-                          ->orWhere('estado', 'INACTIVO')
-                          ->orWhere('estado', 0)
-                          ->orWhere('estado', '0')
-                          ->orWhere('estado', false);
-                })
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'tipo' => 'Servicio Inactivo',
-                        'titulo' => 'Servicio inactivo: ' . ($item->nombre ?? 'Servicio'),
-                        'mensaje' => 'Este servicio se encuentra desactivado actualmente.',
-                        'color' => 'blue',
-                        'fecha' => now()->format('Y-m-d H:i')
-                    ];
-                });
-            $notifications = $notifications->merge($inactiveServices);
-        } catch (\Exception $e) {}
+        $stockBajo = $user->tienePermiso('repuestos', 'mostrar')
+            ? Repuesto::where('estado', 'activo')->whereColumn('stock_actual', '<=', 'stock_minimo')->orderBy('nombre')->get()
+            : collect();
 
-        return view('notifications.index', compact('notifications'));
+        // Al abrir la pantalla, las notificaciones mostradas quedan como leídas.
+        // (La vista recibe los objetos ya cargados, así que aún las muestra como nuevas.)
+        Notificacion::where('user_id', $user->id)->where('leida', false)
+            ->whereIn('id', $notificaciones->pluck('id'))
+            ->update(['leida' => true]);
+
+        return view('notifications.index', compact('notificaciones', 'stockBajo'));
+    }
+
+    public function leerTodas(Request $request): RedirectResponse
+    {
+        Notificacion::where('user_id', $request->user()->id)->where('leida', false)->update(['leida' => true]);
+
+        return back()->with('success', 'Todas las notificaciones quedaron como leídas.');
     }
 }

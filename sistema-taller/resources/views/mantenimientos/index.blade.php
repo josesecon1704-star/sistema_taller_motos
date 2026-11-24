@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Programación de Mantenimiento Preventivo (CU17)
+            Programación de Mantenimiento Preventivo
         </h2>
     </x-slot>
 
@@ -9,9 +9,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Listado de Mantenimientos y Alertas</h2>
+                @can('permiso', ['mantenimientos', 'crear'])
                 <a href="{{ route('mantenimientos.create') }}" style="background-color: #111827; color: #ffffff; padding: 10px 20px; border-radius: 6px; font-weight: bold; text-decoration: display; font-size: 12px; text-transform: uppercase;" class="shadow-lg hover:opacity-90 transition">
                     + Programar Mantenimiento
                 </a>
+                @endcan
             </div>
 
             @if(session('success'))
@@ -48,13 +50,13 @@
                                     {{ $mant->proxima_fecha }}
                                 </td>
                                 <td class="px-6 py-4 text-sm">
-                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm 
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm
                                         {{ $mant->estado == 'PENDIENTE' ? 'bg-amber-100 text-amber-800 border border-amber-300' : ($mant->estado == 'COMPLETADO' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse') }}">
                                         {{ $mant->estado == 'VENCIDO' ? '⚠️ ALERTA: VENCIDO' : $mant->estado }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right text-sm font-medium">
-                                    @if($mant->estado != 'COMPLETADO')
+                                    @if($mant->estado != 'COMPLETADO' && Auth::user()->can('permiso', ['mantenimientos', 'modificar']))
                                         <form action="{{ route('mantenimientos.update', $mant->id) }}" method="POST" class="inline">
                                             @csrf
                                             @method('PUT')

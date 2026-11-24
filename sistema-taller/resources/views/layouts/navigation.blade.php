@@ -1,22 +1,26 @@
 @php
     $esCliente = Auth::user()->esCliente();
+    $noLeidas = \App\Models\Notificacion::where('user_id', Auth::id())->where('leida', false)->count();
+    // 'permiso' => [módulo, acción]; null = visible para cualquier usuario con sesión
     $items = [
-        ['modulo' => null,           'ruta' => 'dashboard',          'activo' => 'dashboard',         'icono' => '🏠', 'texto' => 'Inicio'],
-        ['modulo' => 'servicios',    'ruta' => 'servicios.index',    'activo' => 'servicios.*',       'icono' => '🔧', 'texto' => 'Servicios'],
-        ['modulo' => 'repuestos',    'ruta' => 'repuestos.index',    'activo' => 'repuestos.*',       'icono' => '📦', 'texto' => 'Repuestos'],
-        ['modulo' => 'proveedores',  'ruta' => 'proveedores.index',  'activo' => 'proveedores.*',     'icono' => '🚚', 'texto' => 'Proveedores'],
-        ['modulo' => 'clientes',     'ruta' => 'clientes.index',     'activo' => 'clientes.*',        'icono' => '👥', 'texto' => 'Clientes'],
-        ['modulo' => 'empleados',    'ruta' => 'empleados.index',    'activo' => 'empleados.*',       'icono' => '🧑‍🔧', 'texto' => 'Empleados'],
-        ['modulo' => 'motocicletas', 'ruta' => 'motocicletas.index', 'activo' => 'motocicletas.*',    'icono' => '🏍️', 'texto' => $esCliente ? 'Mis motocicletas' : 'Motocicletas'],
-        ['modulo' => 'citas',        'ruta' => 'citas.index',        'activo' => 'citas.*',           'icono' => '📅', 'texto' => 'Citas'],
-        ['modulo' => 'mantenimientos','ruta' => 'mantenimientos.index','activo' => 'mantenimientos.*','icono' => '🛠️', 'texto' => 'Mantenimientos'],
-        ['modulo' => 'diagnosticos', 'ruta' => 'diagnosticos.index', 'activo' => 'diagnosticos.*',    'icono' => '📋', 'texto' => 'Diagnósticos'],
-        ['modulo' => null,           'ruta' => 'cotizaciones.index', 'activo' => 'cotizaciones.*',    'icono' => '📋', 'texto' => 'Cotizaciones'],
-        ['modulo' => null,           'ruta' => 'ordenes-trabajo.index', 'activo' => 'ordenes-trabajo.*', 'icono' => '📝', 'texto' => 'Órdenes de Trabajo'],
-        ['modulo' => 'usuarios',     'ruta' => 'usuarios.index',     'activo' => 'usuarios.*',        'icono' => '👤', 'texto' => 'Usuarios'],
-        ['modulo' => 'bitacora',     'ruta' => 'bitacora.index',     'activo' => 'bitacora.*',        'icono' => '📋', 'texto' => 'Bitácora'],
-        ['modulo' => 'roles',        'ruta' => 'roles.index',        'activo' => 'roles.*',           'icono' => '🔐', 'texto' => 'Roles y permisos'],
-        ['modulo' => null,           'ruta' => 'notifications.index','activo' => 'notifications.*',   'icono' => '🔔', 'texto' => 'Notificaciones'],
+        ['permiso' => null,                         'ruta' => 'dashboard',             'activo' => 'dashboard',         'icono' => '🏠', 'texto' => 'Inicio'],
+        ['permiso' => null,                         'ruta' => 'notifications.index',   'activo' => 'notifications.*',   'icono' => '🔔', 'texto' => 'Notificaciones', 'contador' => $noLeidas],
+        ['permiso' => ['citas', 'mostrar'],         'ruta' => 'citas.index',           'activo' => 'citas.*',           'icono' => '📅', 'texto' => $esCliente ? 'Mis citas' : 'Citas'],
+        ['permiso' => ['motocicletas', 'mostrar'],  'ruta' => 'motocicletas.index',    'activo' => 'motocicletas.*',    'icono' => '🏍️', 'texto' => $esCliente ? 'Mis motocicletas' : 'Motocicletas'],
+        ['permiso' => ['diagnosticos', 'mostrar'],  'ruta' => 'diagnosticos.index',    'activo' => 'diagnosticos.*',    'icono' => '🩺', 'texto' => 'Diagnósticos'],
+        ['permiso' => ['cotizaciones', 'mostrar'],  'ruta' => 'cotizaciones.index',    'activo' => 'cotizaciones.*',    'icono' => '🧾', 'texto' => $esCliente ? 'Mis cotizaciones' : 'Cotizaciones'],
+        ['permiso' => ['ordenes', 'mostrar'],       'ruta' => 'ordenes-trabajo.index', 'activo' => 'ordenes-trabajo.*', 'icono' => '📝', 'texto' => $esCliente ? 'Mis órdenes' : 'Órdenes de trabajo'],
+        ['permiso' => ['garantias', 'mostrar'],     'ruta' => 'garantias.index',       'activo' => 'garantias.*',       'icono' => '🛡️', 'texto' => 'Garantías'],
+        ['permiso' => ['mantenimientos', 'mostrar'],'ruta' => 'mantenimientos.index',  'activo' => 'mantenimientos.*',  'icono' => '🛠️', 'texto' => 'Mantenimientos'],
+        ['permiso' => ['clientes', 'mostrar'],      'ruta' => 'clientes.index',        'activo' => 'clientes.*',        'icono' => '👥', 'texto' => 'Clientes'],
+        ['permiso' => ['servicios', 'mostrar'],     'ruta' => 'servicios.index',       'activo' => 'servicios.*',       'icono' => '🔧', 'texto' => 'Servicios'],
+        ['permiso' => ['repuestos', 'mostrar'],     'ruta' => 'repuestos.index',       'activo' => 'repuestos.*',       'icono' => '📦', 'texto' => 'Repuestos'],
+        ['permiso' => ['proveedores', 'mostrar'],   'ruta' => 'proveedores.index',     'activo' => 'proveedores.*',     'icono' => '🚚', 'texto' => 'Proveedores'],
+        ['permiso' => ['finanzas', 'mostrar'],      'ruta' => 'reportes.index',        'activo' => 'reportes.*',        'icono' => '📊', 'texto' => 'Reportes'],
+        ['permiso' => ['empleados', 'mostrar'],     'ruta' => 'empleados.index',       'activo' => 'empleados.*',       'icono' => '🧑‍🔧', 'texto' => 'Empleados'],
+        ['permiso' => ['usuarios', 'mostrar'],      'ruta' => 'usuarios.index',        'activo' => 'usuarios.*',        'icono' => '👤', 'texto' => 'Usuarios'],
+        ['permiso' => ['roles', 'mostrar'],         'ruta' => 'roles.index',           'activo' => 'roles.*',           'icono' => '🔐', 'texto' => 'Roles y permisos'],
+        ['permiso' => ['bitacora', 'mostrar'],      'ruta' => 'bitacora.index',        'activo' => 'bitacora.*',        'icono' => '📋', 'texto' => 'Bitácora'],
     ];
 @endphp
 
@@ -55,13 +59,16 @@
 
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
             @foreach ($items as $item)
-                @if ($item['modulo'] === null || Auth::user()->can('permiso', [$item['modulo'], 'mostrar']))
+                @if ($item['permiso'] === null || Auth::user()->can('permiso', $item['permiso']))
                     @php $activo = request()->routeIs($item['activo']); @endphp
                     <a href="{{ route($item['ruta']) }}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
                             {{ $activo ? 'bg-white text-gray-900' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <span class="w-6 text-center text-lg leading-none">{{ $item['icono'] }}</span>
                         <span>{{ $item['texto'] }}</span>
+                        @if (! empty($item['contador']))
+                            <span class="ms-auto px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">{{ $item['contador'] }}</span>
+                        @endif
                     </a>
                 @endif
             @endforeach

@@ -12,15 +12,17 @@ use App\Http\Controllers\RepuestoController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\NotificacionController;
-use App\Http\Controllers\CotizacionController; // CU19
-use App\Http\Controllers\CitaController;
-use App\Http\Controllers\MantenimientoController; // CU17
-use App\Http\Controllers\DiagnosticoController; // CU18
-use App\Http\Controllers\OrdenTrabajoController; // CU23 / CU25 / CU26
-use App\Http\Controllers\TareaServicioController; // CU24
-use App\Http\Controllers\PagoController; // CU22
-use App\Http\Controllers\ReclamoGarantiaController;
+use App\Http\Controllers\CitaController;               // CU15
+use App\Http\Controllers\MantenimientoController;      // CU16
+use App\Http\Controllers\DiagnosticoController;        // CU17
+use App\Http\Controllers\CotizacionController;         // CU18
+use App\Http\Controllers\OrdenTrabajoController;       // CU19, CU20
+use App\Http\Controllers\TareaServicioController;      // CU19
+use App\Http\Controllers\PagoController;               // CU22
+use App\Http\Controllers\GarantiaController;           // CU23
+use App\Http\Controllers\ReclamoGarantiaController;   // CU24
+use App\Http\Controllers\NotificacionController;       // CU07
+use App\Http\Controllers\ReporteController;            // CU25
 
 Route::redirect('/', '/login');
 
@@ -42,59 +44,56 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 //Servicios
 Route::middleware('auth')->group(function () {
 
-    //CITAS (CU15)
+    // CU15 - Gestionar cita (las citas no se eliminan: se cancelan)
     Route::resource('citas', CitaController::class)
+        ->except(['destroy'])
         ->parameters(['citas' => 'cita']);
+    Route::patch('citas/{cita}/estado', [CitaController::class, 'cambiarEstado'])->name('citas.estado');
+    Route::patch('citas/{cita}/cancelar', [CitaController::class, 'cancelar'])->name('citas.cancelar');
 
-    Route::patch('citas/{cita}/estado', [CitaController::class, 'cambiarEstado'])
-        ->name('citas.estado');
-
-    //MANTENIMIENTOS (CU17)
+    // CU16 - Programar mantenimiento
     Route::resource('mantenimientos', MantenimientoController::class)
+        ->only(['index', 'create', 'store', 'update'])
         ->parameters(['mantenimientos' => 'mantenimiento']);
 
-    //DIAGNOSTICOS (CU18)
+    // CU17 - Registrar diagnóstico
     Route::resource('diagnosticos', DiagnosticoController::class)
+        ->only(['index', 'create', 'store'])
         ->parameters(['diagnosticos' => 'diagnostico']);
 
-    //COTIZACIONES (CU19)
+    // CU18 - Gestionar cotización
     Route::resource('cotizaciones', CotizacionController::class)
-        ->parameters(['cotizacions' => 'cotizacion']);
+        ->only(['index', 'create', 'store']);
+    Route::post('/cotizaciones/{id}/estado', [CotizacionController::class, 'cambiarEstado'])->name('cotizaciones.estado');
 
-    Route::post('/cotizaciones/{id}/estado', [CotizacionController::class, 'cambiarEstado'])
-        ->name('cotizaciones.estado');
-
-    //ORDENES DE TRABAJO (CU23 / CU25)
+    // CU19 - Gestionar orden de trabajo
     Route::resource('ordenes-trabajo', OrdenTrabajoController::class)
+        ->only(['index', 'store'])
         ->parameters(['ordenes-trabajo' => 'ordenTrabajo']);
+    Route::get('/ordenes-trabajo/{ordenTrabajo}/comprobante', [OrdenTrabajoController::class, 'comprobante'])->name('ordenes-trabajo.comprobante');
+    Route::patch('/ordenes-trabajo/{ordenTrabajo}/estado', [OrdenTrabajoController::class, 'updateEstado'])->name('ordenes-trabajo.updateEstado');
+    Route::post('/tareas-servicios', [TareaServicioController::class, 'store'])->name('tareas-servicios.store');
+    Route::patch('/tareas-servicios/{tareaServicio}/estado', [TareaServicioController::class, 'cambiarEstado'])->name('tareas-servicios.estado');
+    Route::delete('/tareas-servicios/{tareaServicio}', [TareaServicioController::class, 'destroy'])->name('tareas-servicios.destroy');
 
-    // CU27 - Ruta para ver e imprimir el reporte o comprobante de servicio
-    Route::get('/ordenes-trabajo/{ordenTrabajo}/comprobante', [OrdenTrabajoController::class, 'comprobante'])
-        ->name('ordenes-trabajo.comprobante');
+    // CU20 - Registrar repuestos utilizados
+    Route::post('/ordenes-trabajo/{ordenTrabajo}/repuestos', [OrdenTrabajoController::class, 'storeRepuesto'])->name('ordenes-trabajo.repuestos.store');
 
-    // CU25 - Actualizar Estado de Orden de Trabajo
-    Route::patch('/ordenes-trabajo/{ordenTrabajo}/estado', [OrdenTrabajoController::class, 'updateEstado'])
-        ->name('ordenes-trabajo.updateEstado');
+    // CU22 - Registrar pago
+    Route::post('/ordenes-trabajo/{ordenTrabajo}/pagos', [PagoController::class, 'store'])->name('ordenes-trabajo.pagos.store');
 
-    // CU26 - Registrar Repuestos en la Orden de Trabajo
-    Route::post('/ordenes-trabajo/{ordenTrabajo}/repuestos', [OrdenTrabajoController::class, 'storeRepuesto'])
-        ->name('ordenes-trabajo.repuestos.store');
+    // CU23 - Registrar garantía / CU24 - Registrar reclamo de garantía
+    Route::get('/garantias', [GarantiaController::class, 'index'])->name('garantias.index');
+    Route::patch('/garantias/{garantia}', [GarantiaController::class, 'update'])->name('garantias.update');
+    Route::post('/garantias/{garantia}/reclamos', [ReclamoGarantiaController::class, 'store'])->name('reclamos-garantias.store');
+    Route::patch('/reclamos/{reclamo}/estado', [ReclamoGarantiaController::class, 'cambiarEstado'])->name('reclamos-garantias.estado');
 
-    // CU29 - Registrar Pago en la Orden de Trabajo
-    Route::post('/ordenes-trabajo/{ordenTrabajo}/pagos', [PagoController::class, 'store'])
-        ->name('ordenes-trabajo.pagos.store');
+    // CU07 - Visualizar notificaciones
+    Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notifications.index');
+    Route::patch('/notificaciones/leer-todas', [NotificacionController::class, 'leerTodas'])->name('notifications.leer-todas');
 
-    // CU30 / CU31 - Registrar Reclamo de Garantía
-    Route::post('/garantias/{garantia}/reclamos', [ReclamoGarantiaController::class, 'store'])
-        ->name('reclamos-garantias.store');
-
-    //TAREAS DE SERVICIO / ASIGNAR A MECÁNICOS (CU24)
-    Route::post('/tareas-servicios', [TareaServicioController::class, 'store'])
-        ->name('tareas-servicios.store');
-    Route::patch('/tareas-servicios/{tareaServicio}/estado', [TareaServicioController::class, 'cambiarEstado'])
-        ->name('tareas-servicios.estado');
-    Route::delete('/tareas-servicios/{tareaServicio}', [TareaServicioController::class, 'destroy'])
-        ->name('tareas-servicios.destroy');
+    // CU25 - Consultar reportes
+    Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
 
     //SERVICIOS
     Route::resource('servicios', ServicioController::class)
@@ -182,8 +181,6 @@ Route::middleware('auth')->group(function () {
         ->parameters(['usuarios' => 'usuario']);
     Route::patch('usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])->name('usuarios.estado');
 
-    //notificaciones
-    Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notifications.index');
 });
 
 require __DIR__ . '/auth.php';

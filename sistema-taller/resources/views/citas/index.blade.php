@@ -1,75 +1,85 @@
+@php $esCliente = Auth::user()->esCliente(); @endphp
+
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Gestión de Citas
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ $esCliente ? 'Mis citas' : 'Citas' }}
+            </h2>
+
+            @can('permiso', ['citas', 'crear'])
+                <a href="{{ route('citas.create') }}"
+                   class="px-4 py-2 bg-gray-800 text-white text-xs uppercase rounded-md hover:bg-gray-700">
+                    {{ $esCliente ? 'Solicitar cita' : 'Nueva cita' }}
+                </a>
+            @endcan
+        </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Listado de Citas</h2>
-                <a href="{{ route('citas.create') }}" style="background-color: #111827; color: #ffffff; padding: 10px 20px; border-radius: 8px; font-weight: bold; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    + Nueva Cita
-                </a>
-            </div>
-
-            @if(session('success'))
-                <div class="bg-green-500 text-white p-4 rounded-lg mb-4 shadow">
-                    {{ session('success') }}
-                </div>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @if (session('success'))
+                <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="mb-4 p-3 bg-red-100 text-red-800 rounded">{{ session('error') }}</div>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Fecha y Hora</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Motocicleta</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cliente</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Motivo</th> <!-- NUEVA COLUMNA -->
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @forelse($citas as $cita)
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
+                <form method="GET" class="flex flex-wrap gap-2 items-center mb-4">
+                    <select name="estado" class="border-gray-300 rounded-md shadow-sm w-full sm:w-auto">
+                        <option value="">Todos los estados</option>
+                        @foreach (\App\Models\Cita::ESTADOS as $clave => $etiqueta)
+                            <option value="{{ $clave }}" @selected(request('estado') === $clave)>{{ $etiqueta }}</option>
+                        @endforeach
+                    </select>
+                    <input type="date" name="fecha" value="{{ request('fecha') }}"
+                           class="border-gray-300 rounded-md shadow-sm w-full sm:w-auto">
+                    <x-primary-button>Filtrar</x-primary-button>
+                </form>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-gray-600 border-b">
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    {{ $cita->fecha_hora }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    {{ $cita->motocicleta->marca ?? 'N/A' }} {{ $cita->motocicleta->modelo ?? '' }} ({{ $cita->motocicleta->placa ?? 'Sin placa' }})
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    {{ $cita->cliente->nombre ?? ($cita->cliente->name ?? 'N/A') }}
-                                </td>
-                                <!-- AQUÍ MOSTRAMOS EL MOTIVO -->
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 font-medium">
-                                    {{ $cita->motivo }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        {{ $cita->estado == 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' : ($cita->estado == 'COMPLETADA' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') }}">
-                                        {{ $cita->estado }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{{ route('citas.edit', $cita->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 mr-3">Editar</a>
-                                </td>
+                                <th class="py-2">Fecha y hora</th>
+                                @unless ($esCliente)
+                                    <th class="hidden sm:table-cell">Cliente</th>
+                                @endunless
+                                <th class="hidden md:table-cell">Motocicleta</th>
+                                <th class="hidden lg:table-cell">Motivo</th>
+                                <th>Estado</th>
+                                <th></th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                    No hay citas registradas.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-4">
-                {{ $citas->links() }}
+                        </thead>
+                        <tbody>
+                            @forelse ($citas as $cita)
+                                <tr class="border-b">
+                                    <td class="py-2 whitespace-nowrap">
+                                        {{ $cita->fecha_hora->format('d/m/Y H:i') }}
+                                        <div class="text-xs text-gray-500 md:hidden">{{ $cita->motocicleta?->placa }}</div>
+                                    </td>
+                                    @unless ($esCliente)
+                                        <td class="hidden sm:table-cell">{{ $cita->cliente?->nombre }}</td>
+                                    @endunless
+                                    <td class="hidden md:table-cell">
+                                        {{ $cita->motocicleta?->marca }} {{ $cita->motocicleta?->modelo }}
+                                        <span class="text-gray-500">({{ $cita->motocicleta?->placa ?: 'sin placa' }})</span>
+                                    </td>
+                                    <td class="hidden lg:table-cell">{{ \Illuminate\Support\Str::limit($cita->motivo, 40) }}</td>
+                                    <td>@include('citas._estado', ['estado' => $cita->estado])</td>
+                                    <td class="text-right whitespace-nowrap">
+                                        <a href="{{ route('citas.show', $cita) }}" class="text-indigo-600 hover:underline">Ver</a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6" class="py-6 text-center text-gray-500">No hay citas.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4">{{ $citas->links() }}</div>
             </div>
         </div>
     </div>

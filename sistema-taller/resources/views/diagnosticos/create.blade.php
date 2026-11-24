@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Registrar Diagnóstico Técnico (CU18)
+            Registrar Diagnóstico Técnico
         </h2>
     </x-slot>
 
@@ -9,6 +9,14 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Nuevo Diagnóstico y Checklist</h2>
+
+                @if ($errors->any())
+                    <div class="mb-4 p-3 bg-red-100 text-red-800 rounded text-sm">
+                        @foreach ($errors->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
+                    </div>
+                @endif
 
                 <form action="{{ route('diagnosticos.store') }}" method="POST">
                     @csrf

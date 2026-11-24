@@ -1,74 +1,69 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Gestionar Cita (CU16)
-        </h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Editar / reprogramar cita</h2>
     </x-slot>
 
-    <div class="container mx-auto px-4 py-6">
-        <div class="max-w-xl mx-auto bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-            <h2 class="text-2xl font-bold text-white mb-6">Reprogramar o Cancelar Cita</h2>
-
-            @if ($errors->any())
-                <div class="bg-red-500 text-white p-3 rounded mb-4">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('citas.update', $cita->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Motocicleta</label>
-                    <select name="motocicleta_id" style="color: #000000; background-color: #ffffff;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                        @foreach($motocicletas as $moto)
-                            <option value="{{ $moto->id }}" {{ $cita->motocicleta_id == $moto->id ? 'selected' : '' }}>
-                                {{ $moto->placa }} - {{ $moto->marca }} {{ $moto->modelo }}
-                            </option>
-                        @endforeach
-                    </select>
+    <div class="py-12">
+        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
+                <div class="mb-4 text-sm text-gray-700">
+                    <div class="font-medium">{{ $cita->cliente?->nombre }}</div>
+                    <div class="text-gray-500">
+                        {{ $cita->motocicleta?->marca }} {{ $cita->motocicleta?->modelo }} — {{ $cita->motocicleta?->placa ?: 'sin placa' }}
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Motivo</label>
-                    <input type="text" name="motivo" value="{{ $cita->motivo }}" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                </div>
+                <form method="POST" action="{{ route('citas.update', $cita) }}" class="space-y-4">
+                    @csrf
+                    @method('PUT')
 
-                @php
-                    $partes = explode(' ', $cita->fecha_hora);
-                    $fFecha = $partes[0] ?? '';
-                    $fHora = isset($partes[1]) ? substr($partes[1], 0, 5) : '';
-                @endphp
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <x-input-label for="fecha" value="Fecha" />
+                            <x-text-input id="fecha" type="date" name="fecha" class="block mt-1 w-full"
+                                          :value="old('fecha', $cita->fecha_hora->format('Y-m-d'))" required />
+                            <x-input-error :messages="$errors->get('fecha')" class="mt-2" />
+                        </div>
+                        <div>
+                            <x-input-label for="hora" value="Hora" />
+                            <x-text-input id="hora" type="time" name="hora" class="block mt-1 w-full"
+                                          :value="old('hora', $cita->fecha_hora->format('H:i'))" required />
+                            <x-input-error :messages="$errors->get('hora')" class="mt-2" />
+                        </div>
+                    </div>
+                    <x-input-error :messages="$errors->get('motocicleta_id')" class="mt-2" />
 
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Nueva Fecha</label>
-                    <input type="date" name="fecha" value="{{ $fFecha }}" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                </div>
+                    <div>
+                        <x-input-label for="motivo" value="Motivo" />
+                        <textarea id="motivo" name="motivo" rows="2" maxlength="255" required
+                                  class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">{{ old('motivo', $cita->motivo) }}</textarea>
+                        <x-input-error :messages="$errors->get('motivo')" class="mt-2" />
+                    </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Nueva Hora</label>
-                    <input type="time" name="Hora" value="{{ $fHora }}" style="color: #000000 !important; background-color: #ffffff !important;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                </div>
+                    <div>
+                        <x-input-label for="empleado_id" value="Mecánico asignado" />
+                        <select id="empleado_id" name="empleado_id" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                            <option value="">Sin asignar</option>
+                            @foreach ($empleados as $empleado)
+                                <option value="{{ $empleado->id }}" @selected(old('empleado_id', $cita->empleado_id) == $empleado->id)>{{ $empleado->nombre }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error :messages="$errors->get('empleado_id')" class="mt-2" />
+                    </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-300 text-sm font-bold mb-2">Estado de la Cita</label>
-                    <select name="estado" style="color: #000000; background-color: #ffffff;" class="w-full border border-gray-600 rounded p-2 font-medium" required>
-                        <option value="PENDIENTE" {{ $cita->estado == 'PENDIENTE' ? 'selected' : '' }}>PENDIENTE (Reprogramada)</option>
-                        <option value="COMPLETADA" {{ $cita->estado == 'COMPLETADA' ? 'selected' : '' }}>COMPLETADA</option>
-                        <option value="CANCELADA" {{ $cita->estado == 'CANCELADA' ? 'selected' : '' }}>CANCELADA</option>
-                    </select>
-                </div>
+                    <div>
+                        <x-input-label for="observaciones" value="Observaciones internas" />
+                        <textarea id="observaciones" name="observaciones" rows="3"
+                                  class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">{{ old('observaciones', $cita->observaciones) }}</textarea>
+                        <x-input-error :messages="$errors->get('observaciones')" class="mt-2" />
+                    </div>
 
-                <div class="flex justify-end mt-6">
-                    <a href="{{ route('citas.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded mr-2 hover:bg-gray-500 font-semibold">Cancelar</a>
-                    <button type="submit" style="background-color: #111827; color: #ffffff; padding: 8px 16px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer;">Guardar Cambios</button>
-                </div>
-            </form>
+                    <div class="flex items-center justify-end gap-3">
+                        <a href="{{ route('citas.show', $cita) }}" class="text-sm text-gray-600 underline">Volver</a>
+                        <x-primary-button>Guardar cambios</x-primary-button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </x-app-layout>

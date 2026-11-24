@@ -15,7 +15,7 @@
 <body class="bg-gray-100 text-gray-800 font-sans py-10">
 
     <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-        
+
         <!-- Acciones superiores (No salen al imprimir) -->
         <div class="flex justify-between items-center mb-6 pb-4 border-b no-print">
             <a href="{{ route('ordenes-trabajo.index') }}" class="text-xs bg-gray-600 text-white px-3 py-2 rounded font-semibold hover:bg-gray-700 transition">
@@ -42,22 +42,7 @@
             </div>
         </div>
 
-        @php
-            $cotizacion = $cotizacion ?? $ordenTrabajo->cotizacion;
-            $diagnostico = $diagnostico ?? ($cotizacion->diagnostico ?? null);
-            $motocicleta = $motocicleta ?? ($diagnostico->motocicleta ?? null);
-
-            if (!isset($cliente)) {
-                $clienteId = $cotizacion->cliente_id
-                    ?? ($diagnostico->cliente_id ?? null)
-                    ?? ($motocicleta->cliente_id ?? null)
-                    ?? null;
-
-                $cliente = $motocicleta->cliente
-                    ?? $cotizacion->cliente
-                    ?? ($clienteId ? \App\Models\Cliente::find($clienteId) : null);
-            }
-        @endphp
+        {{-- $cliente, $motocicleta, $cotizacion y $diagnostico los envía el controlador --}}
 
         <!-- Datos del Cliente y Motocicleta Dinámicos -->
         <div class="grid grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border text-xs">
@@ -69,8 +54,8 @@
             </div>
             <div>
                 <h3 class="font-bold text-gray-700 uppercase mb-1">🏍️ Datos de la Motocicleta:</h3>
-                <p><span class="font-semibold">Vehículo:</span> {{ $motocicleta->marca ?? 'Yamaha' }} {{ $motocicleta->modelo ?? '' }}</p>
-                <p><span class="font-semibold">Placa:</span> {{ $motocicleta->placa ?? $motocicleta->nro_placa ?? '4821ABC' }}</p>
+                <p><span class="font-semibold">Vehículo:</span> {{ $motocicleta->marca ?? 'N/D' }} {{ $motocicleta->modelo ?? '' }}</p>
+                <p><span class="font-semibold">Placa:</span> {{ $motocicleta?->placa ?: 'sin placa' }}</p>
                 <p><span class="font-semibold">Estado Orden:</span> <span class="uppercase font-bold text-indigo-600">{{ str_replace('_', ' ', $ordenTrabajo->estado) }}</span></p>
             </div>
         </div>
@@ -102,7 +87,7 @@
             </table>
         </div>
 
-        <!-- Repuestos Utilizados (CU27) -->
+        <!-- Repuestos Utilizados -->
         @if(isset($repuestosUsados) && $repuestosUsados->count() > 0)
             <div class="mb-6">
                 <h3 class="text-xs font-bold text-gray-700 uppercase mb-2">📦 Repuestos Utilizados:</h3>
@@ -120,8 +105,8 @@
                             <tr>
                                 <td class="px-3 py-2 font-medium">{{ $ru->nombre }}</td>
                                 <td class="px-3 py-2 text-center">{{ $ru->cantidad }}</td>
-                                <td class="px-3 py-2 text-right">${{ number_format($ru->precio_unitario, 2) }}</td>
-                                <td class="px-3 py-2 text-right font-semibold">${{ number_format($ru->cantidad * $ru->precio_unitario, 2) }}</td>
+                                <td class="px-3 py-2 text-right">Bs {{ number_format($ru->precio_unitario, 2) }}</td>
+                                <td class="px-3 py-2 text-right font-semibold">Bs {{ number_format($ru->cantidad * $ru->precio_unitario, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -131,7 +116,7 @@
 
         <!-- Desglose Financiero y Totales -->
         @php
-            $montoTotal = $ordenTrabajo->monto_total > 0 ? $ordenTrabajo->monto_total : ($cotizacion->total ?? $cotizacion->monto_total ?? 241.00);
+            $montoTotal = $ordenTrabajo->totalACobrar();
             $totalPagado = $ordenTrabajo->pagos->sum('monto');
             $saldoPendiente = $montoTotal - $totalPagado;
         @endphp
@@ -139,15 +124,15 @@
             <div class="w-64 bg-gray-50 p-4 rounded-lg border text-xs space-y-2">
                 <div class="flex justify-between">
                     <span class="text-gray-600 font-medium">Monto Total:</span>
-                    <span class="font-bold text-gray-900">${{ number_format($montoTotal, 2) }}</span>
+                    <span class="font-bold text-gray-900">Bs {{ number_format($montoTotal, 2) }}</span>
                 </div>
                 <div class="flex justify-between border-t pt-2">
                     <span class="text-gray-600 font-medium">Total Pagado:</span>
-                    <span class="font-bold text-emerald-600">${{ number_format($totalPagado, 2) }}</span>
+                    <span class="font-bold text-emerald-600">Bs {{ number_format($totalPagado, 2) }}</span>
                 </div>
                 <div class="flex justify-between border-t pt-2 text-sm font-bold">
                     <span class="text-gray-800">Saldo Pendiente:</span>
-                    <span class="text-red-600">${{ number_format($saldoPendiente, 2) }}</span>
+                    <span class="text-red-600">Bs {{ number_format($saldoPendiente, 2) }}</span>
                 </div>
             </div>
         </div>

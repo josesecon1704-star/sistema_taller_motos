@@ -9,7 +9,15 @@
         <div class="max-w-xl mx-auto bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
             <h2 class="text-2xl font-bold text-white mb-6">Nuevo Mantenimiento Preventivo</h2>
 
-            <form action="{{ route('mantenimientos.store') }}" method="POST">
+            @if ($errors->any())
+                    <div class="mb-4 p-3 bg-red-100 text-red-800 rounded text-sm">
+                        @foreach ($errors->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <form action="{{ route('mantenimientos.store') }}" method="POST">
                 @csrf
 
                 <div class="mb-4">

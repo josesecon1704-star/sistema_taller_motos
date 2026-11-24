@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Observers\BitacoraObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+#[ObservedBy(BitacoraObserver::class)]
 class Diagnostico extends Model
 {
     use HasFactory;
@@ -30,5 +33,25 @@ class Diagnostico extends Model
     public function motocicleta()
     {
         return $this->belongsTo(Motocicleta::class);
+    }
+
+    public function cita()
+    {
+        return $this->belongsTo(Cita::class);
+    }
+
+    public function empleado()
+    {
+        return $this->belongsTo(Empleado::class);
+    }
+
+    public function cotizaciones()
+    {
+        return $this->hasMany(Cotizacion::class);
+    }
+
+    public function scopeDelCliente($query, $clienteId)
+    {
+        return $query->whereHas('motocicleta', fn ($m) => $m->where('cliente_id', $clienteId));
     }
 }

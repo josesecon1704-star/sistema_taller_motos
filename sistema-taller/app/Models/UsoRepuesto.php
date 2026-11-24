@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Observers\BitacoraObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 
+#[ObservedBy(BitacoraObserver::class)]
 class UsoRepuesto extends Model
 {
     protected $fillable = [
@@ -21,8 +24,8 @@ class UsoRepuesto extends Model
         return $this->belongsTo(Repuesto::class);
     }
 
-    public function movimiento() { 
-        return $this->hasOne(MovimientoInventario::class); 
+    public function movimiento() {
+        return $this->hasOne(MovimientoInventario::class);
     }
 
 }

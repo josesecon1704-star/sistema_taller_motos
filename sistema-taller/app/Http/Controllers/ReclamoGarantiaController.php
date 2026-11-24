@@ -3,54 +3,74 @@
 namespace App\Http\Controllers;
 
 use App\Models\Garantia;
+use App\Models\Notificacion;
 use App\Models\ReclamoGarantia;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\Rule;
 
+/** CU24 - Registrar reclamo de garantía. */
 class ReclamoGarantiaController extends Controller
 {
-    public function store(Request $request, Garantia $garantia)
+    public const ESTADOS = ['pendiente', 'aprobado', 'rechazado'];
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permiso:garantias,crear', only: ['store']),
+            new Middleware('permiso:garantias,modificar', only: ['cambiarEstado']),
+        ];
+    }
+
+    public function store(Request $request, Garantia $garantia): RedirectResponse
     {
         $request->validate([
-            'descripcion_problema' => 'required|string|max:500',
-            'km' => 'nullable|integer|min:0',
+            'descripcion_problema' => 'required|string|max:255',
+            'km'                   => 'nullable|integer|min:0',
         ]);
 
-        // Validar que la garantía exista y esté activa
-        if (strtolower((string) $garantia->estado) !== 'activa') {
-            return redirect()->back()->withErrors([
-                'error' => 'No se puede registrar el reclamo porque la garantía no se encuentra activa.',
-            ]);
+        if ($garantia->estado !== 'vigente') {
+            return back()->withErrors(['error' => 'No se puede registrar el reclamo porque la garantía no está vigente.']);
         }
 
-        // Validar vigencia por tiempo (días desde fecha_inicio)
-        $diasCobertura = (int) ($garantia->dias ?? 90);
-        if ($garantia->fecha_inicio && $diasCobertura > 0) {
-            $fechaVencimiento = Carbon::parse($garantia->fecha_inicio)->addDays($diasCobertura);
-            if (now()->greaterThan($fechaVencimiento)) {
-                return redirect()->back()->withErrors([
-                    'error' => 'No se puede registrar el reclamo porque el plazo de cobertura (' . $diasCobertura . ' días) ha vencido.',
-                ]);
-            }
+        if (now()->greaterThan($garantia->fechaVencimiento())) {
+            $garantia->update(['estado' => 'vencida']);
+
+            return back()->withErrors(['error' => 'El plazo de cobertura (' . $garantia->dias . ' días) ya venció.']);
         }
 
-        // Validar límite de kilometraje si se envía un kilometraje en el reclamo
-        $kmLimite = $garantia->km ?? null;
+        // Kilómetros recorridos desde la entrega de la orden
+        $garantia->load('ordenTrabajo');
         $kmReclamo = $request->input('km');
-        if (!is_null($kmLimite) && !is_null($kmReclamo) && (int) $kmReclamo > (int) $kmLimite) {
-            return redirect()->back()->withErrors([
-                'error' => 'No se puede registrar el reclamo porque excede el límite de kilometraje (' . $kmLimite . ' km).',
-            ]);
+        $kmIngreso = (int) $garantia->ordenTrabajo?->km_ingreso;
+
+        if (! is_null($kmReclamo) && $kmIngreso && ((int) $kmReclamo - $kmIngreso) > (int) $garantia->km) {
+            return back()->withErrors(['error' => 'El reclamo excede el límite de ' . $garantia->km . ' km de la garantía.']);
         }
 
         ReclamoGarantia::create([
             'garantia_id' => $garantia->id,
             'descripcion' => $request->descripcion_problema,
-            'fecha' => now(),
-            'km' => (int) ($kmReclamo ?? 0),
-            'estado' => 'pendiente',
+            'fecha'       => now(),
+            'km'          => (int) ($kmReclamo ?? 0),
+            'estado'      => 'pendiente',
         ]);
 
-        return redirect()->back()->with('success', 'Reclamo de garantía registrado exitosamente sin costo adicional.');
+        return back()->with('success', 'Reclamo de garantía registrado.');
+    }
+
+    /** Aprobar o rechazar un reclamo. */
+    public function cambiarEstado(Request $request, ReclamoGarantia $reclamo): RedirectResponse
+    {
+        $request->validate(['estado' => ['required', Rule::in(self::ESTADOS)]]);
+
+        $reclamo->update(['estado' => $request->estado]);
+
+        $reclamo->load('garantia.ordenTrabajo.diagnostico.motocicleta.cliente');
+        Notificacion::aCliente($reclamo->garantia?->ordenTrabajo?->cliente, 'garantia',
+            "Tu reclamo de garantía fue {$request->estado}.");
+
+        return back()->with('success', 'Reclamo actualizado.');
     }
 }

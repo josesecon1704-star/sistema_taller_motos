@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Gestión de Cotizaciones (CU19 / CU22 / CU23)
+            Gestión de Cotizaciones
         </h2>
     </x-slot>
 
@@ -9,10 +9,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Listado de Cotizaciones</h2>
-                
+
+                @can('permiso', ['cotizaciones', 'crear'])
                 <a href="{{ route('cotizaciones.create') }}" style="background-color: #111827; color: #ffffff; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;" class="shadow hover:opacity-90 transition flex items-center gap-2">
                     + Registrar Cotización
                 </a>
+                @endcan
             </div>
 
             @if(session('success'))
@@ -53,20 +55,20 @@
                                     <span class="block text-xs text-gray-400 font-normal">{{ $cot->fecha_emision }}</span>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                    {{ $cot->diagnostico->motocicleta->marca ?? 'N/A' }} 
+                                    {{ $cot->diagnostico->motocicleta->marca ?? 'N/A' }}
                                     <span class="text-indigo-600 dark:text-indigo-400 font-semibold">({{ $cot->diagnostico->motocicleta->placa ?? 'S/P' }})</span>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                    $ {{ number_format($cot->total_mano_obra, 2) }}
+                                    Bs {{ number_format($cot->total_mano_obra, 2) }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                    $ {{ number_format($cot->total_repuestos, 2) }}
+                                    Bs {{ number_format($cot->total_repuestos, 2) }}
                                 </td>
                                 <td class="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                                    $ {{ number_format($cot->monto_total, 2) }}
+                                    Bs {{ number_format($cot->monto_total, 2) }}
                                 </td>
                                 <td class="px-6 py-4 text-xs whitespace-nowrap">
-                                    <span class="px-2.5 py-1 rounded-full font-bold uppercase text-[10px] 
+                                    <span class="px-2.5 py-1 rounded-full font-bold uppercase text-[10px]
                                         {{ $cot->estado == 'pendiente' ? 'bg-amber-100 text-amber-800' : '' }}
                                         {{ $cot->estado == 'aprobada' ? 'bg-emerald-100 text-emerald-800' : '' }}
                                         {{ $cot->estado == 'rechazada' ? 'bg-rose-100 text-rose-800' : '' }}">
@@ -79,8 +81,8 @@
                                         Ver Detalle
                                     </button>
 
-                                    <!-- Botones de Cambio de Estado (CU22) -->
-                                    @if($cot->estado == 'pendiente')
+                                    <!-- Botones de Cambio de Estado -->
+                                    @if($cot->estado == 'pendiente' && Auth::user()->can('permiso', ['cotizaciones', 'modificar']))
                                         <form action="{{ route('cotizaciones.estado', $cot->id) }}" method="POST" class="inline">
                                             @csrf
                                             <input type="hidden" name="estado" value="aprobada">
@@ -98,8 +100,8 @@
                                         </form>
                                     @endif
 
-                                    <!-- Botón Generar Orden de Trabajo (CU23) si está aprobada -->
-                                    @if($cot->estado == 'aprobada')
+                                    <!-- Botón Generar Orden de Trabajo si está aprobada -->
+                                    @if($cot->estado == 'aprobada' && ! $cot->ordenTrabajo && Auth::user()->can('permiso', ['ordenes', 'crear']))
                                         <form action="{{ route('ordenes-trabajo.store') }}" method="POST" class="inline">
                                             @csrf
                                             <input type="hidden" name="cotizacion_id" value="{{ $cot->id }}">
@@ -129,7 +131,7 @@
         <!-- VENTANA MODAL PARA VER DETALLE -->
         <div x-show="openModal" class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4" style="display: none;">
             <div @click.away="openModal = false" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full p-6 space-y-6 relative border border-gray-200 dark:border-gray-700">
-                
+
                 <!-- Encabezado Modal -->
                 <div class="flex justify-between items-center border-b pb-3">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">

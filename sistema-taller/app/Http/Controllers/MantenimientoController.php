@@ -4,55 +4,80 @@ namespace App\Http\Controllers;
 
 use App\Models\Mantenimiento;
 use App\Models\Motocicleta;
+use App\Models\Notificacion;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
+/** CU16 - Programar mantenimiento. */
 class MantenimientoController extends Controller
 {
-    public function index()
+    public static function middleware(): array
     {
-        // Actualizar automáticamente a VENCIDO si la fecha límite ya pasó
-        $mantenimientos = Mantenimiento::with('motocicleta')->get();
-        
-        foreach ($mantenimientos as $mant) {
-            if ($mant->estado == 'PENDIENTE' && Carbon::now()->greaterThan($mant->proxima_fecha)) {
-                $mant->update(['estado' => 'VENCIDO']);
-            }
-        }
+        return [
+            new Middleware('permiso:mantenimientos,mostrar', only: ['index']),
+            new Middleware('permiso:mantenimientos,crear', only: ['create', 'store']),
+            new Middleware('permiso:mantenimientos,modificar', only: ['update']),
+        ];
+    }
 
-        $mantenimientos = Mantenimiento::with('motocicleta')->orderBy('proxima_fecha', 'asc')->paginate(10);
+    public function index(Request $request): View
+    {
+        $user = $request->user();
+
+        // Los pendientes cuya fecha límite ya pasó se marcan como vencidos (y se avisa al cliente)
+        Mantenimiento::with('motocicleta.cliente')
+            ->where('estado', 'PENDIENTE')
+            ->whereDate('proxima_fecha', '<', today())
+            ->get()
+            ->each(function (Mantenimiento $m) {
+                $m->update(['estado' => 'VENCIDO']);
+                Notificacion::aCliente($m->motocicleta?->cliente, 'mantenimiento',
+                    "Venció el mantenimiento \"{$m->tipo_mantenimiento}\" de tu moto {$m->motocicleta?->placa}.");
+            });
+
+        $mantenimientos = Mantenimiento::with('motocicleta.cliente')
+            ->when($user->esCliente(), fn ($q) => $q->delCliente($user->cliente_id))
+            ->orderBy('proxima_fecha')
+            ->paginate(10);
+
         return view('mantenimientos.index', compact('mantenimientos'));
     }
 
-    public function create()
+    public function create(): View
     {
-        $motocicletas = Motocicleta::all();
+        $motocicletas = Motocicleta::with('cliente')->orderBy('marca')->get();
+
         return view('mantenimientos.create', compact('motocicletas'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'motocicleta_id' => 'required|exists:motocicletas,id',
-            'tipo_mantenimiento' => 'required|string|max:255',
-            'proximo_km' => 'nullable|integer|min:0',
-            'proxima_fecha' => 'required|date',
+        $datos = $request->validate([
+            'motocicleta_id'     => ['required', 'exists:motocicletas,id'],
+            'tipo_mantenimiento' => ['required', 'string', 'max:255'],
+            'proximo_km'         => ['nullable', 'integer', 'min:0'],
+            'proxima_fecha'      => ['required', 'date', 'after_or_equal:today'],
         ]);
 
-        Mantenimiento::create([
-            'motocicleta_id' => $request->motocicleta_id,
-            'tipo_mantenimiento' => $request->tipo_mantenimiento,
-            'proximo_km' => $request->proximo_km,
-            'proxima_fecha' => $request->proxima_fecha,
-            'estado' => 'PENDIENTE',
-        ]);
+        $mantenimiento = Mantenimiento::create($datos + ['estado' => 'PENDIENTE']);
 
-        return redirect()->route('mantenimientos.index')->with('success', '¡Mantenimiento preventivo programado con éxito!');
+        $mantenimiento->load('motocicleta.cliente');
+        Notificacion::aCliente($mantenimiento->motocicleta?->cliente, 'mantenimiento',
+            "Se programó \"{$mantenimiento->tipo_mantenimiento}\" para tu moto {$mantenimiento->motocicleta?->placa} hasta el "
+            . $mantenimiento->proxima_fecha . '.');
+
+        return redirect()->route('mantenimientos.index')->with('success', 'Mantenimiento preventivo programado con éxito.');
     }
 
-    public function update(Request $request, Mantenimiento $mantenimiento)
+    public function update(Request $request, Mantenimiento $mantenimiento): RedirectResponse
     {
+        $request->validate(['estado' => ['required', Rule::in(Mantenimiento::ESTADOS)]]);
+
         $mantenimiento->update(['estado' => $request->estado]);
-        return redirect()->route('mantenimientos.index')->with('success', '¡Estado de mantenimiento actualizado!');
+
+        return redirect()->route('mantenimientos.index')->with('success', 'Estado del mantenimiento actualizado.');
     }
 }

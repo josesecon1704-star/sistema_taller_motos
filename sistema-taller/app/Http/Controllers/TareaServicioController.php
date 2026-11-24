@@ -2,12 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Empleado;
+use App\Models\Notificacion;
+use App\Models\OrdenTrabajo;
 use App\Models\Servicio;
 use App\Models\TareaServicio;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\Middleware;
 
+/** CU19 - Tareas de servicio de una orden de trabajo (asignar mecánicos y avance). */
 class TareaServicioController extends Controller
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permiso:ordenes,modificar', only: ['store', 'cambiarEstado', 'update', 'destroy']),
+        ];
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -32,6 +44,7 @@ class TareaServicioController extends Controller
         $request->validate([
             'orden_trabajo_id' => 'required|exists:orden_trabajos,id',
             'empleado_id' => 'required|exists:empleados,id',
+            'servicio_id' => 'nullable|exists:servicios,id',
             'descripcion' => 'required|string|max:255',
             'precio_mano_obra' => 'nullable|numeric',
         ]);
@@ -49,6 +62,10 @@ class TareaServicioController extends Controller
         $tarea->estado = 'PENDIENTE';
         $tarea->fecha_inicio = now();
         $tarea->save();
+
+        $orden = OrdenTrabajo::find($tarea->orden_trabajo_id);
+        Notificacion::aEmpleado(Empleado::find($tarea->empleado_id), 'tarea_asignada',
+            "Se te asignó la tarea \"{$tarea->descripcion}\" en la orden {$orden?->nro_orden}.");
 
         return redirect()->back()
             ->with('success', 'Tarea asignada al mecánico correctamente.')
@@ -131,6 +148,15 @@ class TareaServicioController extends Controller
     public function destroy(TareaServicio $tareaServicio)
     {
         $ordenId = $tareaServicio->orden_trabajo_id;
+
+        // Solo se quitan tareas que aún no se empezaron; las demás quedan como historial
+        if ($tareaServicio->estado !== 'PENDIENTE') {
+            return redirect()->back()
+                ->withErrors(['error' => 'Solo se pueden quitar tareas pendientes.'])
+                ->with('abrir_orden_id', $ordenId)
+                ->with('abrir_tab', 'tareas');
+        }
+
         $tareaServicio->delete();
 
         return redirect()->back()

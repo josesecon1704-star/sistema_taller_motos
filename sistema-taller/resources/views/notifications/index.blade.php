@@ -1,46 +1,67 @@
+@php
+    $etiquetas = [
+        'cita' => 'Cita',
+        'cotizacion_lista' => 'Cotización',
+        'cotizacion' => 'Cotización',
+        'orden' => 'Orden de trabajo',
+        'moto_lista' => 'Moto lista',
+        'tarea_asignada' => 'Tarea asignada',
+        'pago' => 'Pago',
+        'garantia' => 'Garantía',
+        'mantenimiento' => 'Mantenimiento',
+    ];
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            🔔 Notificaciones del Sistema
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Notificaciones</h2>
+            <form method="POST" action="{{ route('notifications.leer-todas') }}">
+                @csrf
+                @method('PATCH')
+                <button class="text-sm text-gray-600 underline">Marcar todas como leídas</button>
+            </form>
+        </div>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        Resumen de Alertas
-                    </h1>
-                    <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                        Total: {{ count($notifications) }}
-                    </span>
-                </div>
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            @if (session('success'))
+                <div class="p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
+            @endif
 
-                @if($notifications->isEmpty())
-                    <div class="bg-gray-50 border border-gray-200 shadow-sm rounded-lg p-6 text-center text-gray-500">
-                        No hay notificaciones ni alertas registradas en este momento.
-                    </div>
-                @else
-                    <div class="space-y-4">
-                        @foreach($notifications as $notification)
-                            <div class="bg-white border-l-4 shadow-sm border-gray-200 rounded-r-lg p-4 flex items-start justify-between border-{{ $notification['color'] }}-500">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-semibold uppercase px-2 py-0.5 rounded bg-{{ $notification['color'] }}-100 text-{{ $notification['color'] }}-800">
-                                            {{ $notification['tipo'] }}
-                                        </span>
-                                        <span class="text-xs text-gray-400">{{ $notification['fecha'] }}</span>
-                                    </div>
-                                    <h3 class="text-lg font-semibold text-gray-900 mt-1">{{ $notification['titulo'] }}</h3>
-                                    <p class="text-sm text-gray-600 mt-1">{{ $notification['mensaje'] }}</p>
-                                </div>
-                            </div>
+            @if ($stockBajo->isNotEmpty())
+                <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
+                    <h3 class="font-semibold text-gray-800 mb-3">⚠️ Repuestos con stock bajo</h3>
+                    <ul class="divide-y text-sm">
+                        @foreach ($stockBajo as $repuesto)
+                            <li class="py-2 flex justify-between">
+                                <span>{{ $repuesto->codigo }} — {{ $repuesto->nombre }}</span>
+                                <span class="text-red-700 font-medium">{{ $repuesto->stock_actual }} / mín. {{ $repuesto->stock_minimo }}</span>
+                            </li>
                         @endforeach
-                    </div>
-                @endif
+                    </ul>
+                </div>
+            @endif
 
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6">
+                @forelse ($notificaciones as $n)
+                    <div class="py-3 border-b last:border-0 flex gap-3 items-start {{ $n->leida ? 'opacity-70' : '' }}">
+                        <span class="mt-1 h-2 w-2 rounded-full shrink-0 {{ $n->leida ? 'bg-gray-300' : 'bg-indigo-600' }}"></span>
+                        <div class="flex-1">
+                            <div class="flex flex-wrap gap-2 items-center text-xs text-gray-500">
+                                <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-700">{{ $etiquetas[$n->tipo] ?? $n->tipo }}</span>
+                                <span>{{ $n->created_at->format('d/m/Y H:i') }}</span>
+                                @unless ($n->leida) <span class="text-indigo-600 font-semibold">Nueva</span> @endunless
+                            </div>
+                            <p class="text-sm text-gray-800 mt-1">{{ $n->mensaje }}</p>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-center text-gray-500 py-6">No tienes notificaciones.</p>
+                @endforelse
+
+                <div class="mt-4">{{ $notificaciones->links() }}</div>
             </div>
         </div>
     </div>

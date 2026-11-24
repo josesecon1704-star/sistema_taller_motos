@@ -2,61 +2,64 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pago;
+use App\Models\Notificacion;
 use App\Models\OrdenTrabajo;
+use App\Models\Pago;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 
+/** CU22 - Registrar pago (se permiten pagos parciales). */
 class PagoController extends Controller
 {
-    public function store(Request $request, OrdenTrabajo $ordenTrabajo)
+    public const METODOS = ['efectivo', 'qr', 'transferencia'];
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permiso:pagos,crear', only: ['store']),
+        ];
+    }
+
+    public function store(Request $request, OrdenTrabajo $ordenTrabajo): RedirectResponse
     {
         $request->validate([
-            'monto' => 'required|numeric|min:0.01',
-            'metodo' => 'required|string|in:efectivo,qr,transferencia',
-            'referencia' => 'nullable|string|max:255',
+            'monto'      => 'required|numeric|min:0.01',
+            'metodo'     => 'required|string|in:' . implode(',', self::METODOS),
+            'referencia' => 'nullable|string|max:15',
         ]);
 
-        // Calcular total de la orden
-        $montoTotal = $ordenTrabajo->monto_total > 0 
-            ? $ordenTrabajo->monto_total 
-            : ($ordenTrabajo->cotizacion->total ?? $ordenTrabajo->cotizacion->monto_total ?? 241.00);
+        $saldoPendiente = round($ordenTrabajo->totalACobrar() - $ordenTrabajo->pagos()->sum('monto'), 2);
 
-        // Calcular lo que ya se ha pagado
-        $totalPagado = $ordenTrabajo->pagos()->sum('monto');
-        $saldoPendiente = $montoTotal - $totalPagado;
-
-        // Validar que no pague más de lo debido
-        if ($request->monto > $saldoPendiente) {
-            return redirect()->back()->withErrors(['error' => 'El monto ingresado excede el saldo pendiente ($ ' . number_format($saldoPendiente, 2) . ').']);
+        if ($saldoPendiente <= 0) {
+            return back()->withErrors(['error' => 'Esta orden ya está pagada por completo.']);
         }
 
-        DB::transaction(function () use ($request, $ordenTrabajo) {
-            // Generar número de comprobante único
-            $comprobante = $request->referencia 
-                ? 'COMP-' . strtoupper($request->referencia) 
-                : 'COMP-' . strtoupper(uniqid());
+        if ($request->monto > $saldoPendiente) {
+            return back()->withErrors(['error' => 'El monto ingresado excede el saldo pendiente (Bs ' . number_format($saldoPendiente, 2) . ').']);
+        }
 
-            Pago::create([
+        $pago = DB::transaction(function () use ($request, $ordenTrabajo) {
+            $ultimoId = Pago::max('id') ?? 0;
+
+            return Pago::create([
                 'orden_trabajo_id' => $ordenTrabajo->id,
-                'tipo' => 'ingreso', // <--- Añadido para cumplir con la columna obligatoria 'tipo'
-                'monto' => $request->monto,
-                'metodo' => $request->metodo,
-                'fecha_pago' => now(),
-                'nro_comprobante' => $comprobante,
-                'observaciones' => $request->referencia ? 'Ref: ' . $request->referencia : 'Pago en ' . $request->metodo,
+                'tipo'             => 'servicio',
+                'monto'            => $request->monto,
+                'metodo'           => $request->metodo,
+                'fecha_pago'       => now(),
+                'nro_comprobante'  => 'PAG-' . date('Ym') . '-' . str_pad($ultimoId + 1, 4, '0', STR_PAD_LEFT),
+                'estado'           => 'registrado',
+                'observaciones'    => $request->referencia ? 'Ref: ' . $request->referencia : 'Pago en ' . $request->metodo,
             ]);
-
-            // Si se cubrió el total, actualizar el estado de la orden
-            $nuevoTotalPagado = $ordenTrabajo->pagos()->sum('monto');
-            $montoTotalActual = $ordenTrabajo->monto_total > 0 ? $ordenTrabajo->monto_total : 241.00;
-
-            if ($nuevoTotalPagado >= $montoTotalActual) {
-                $ordenTrabajo->estado = 'completada';
-                $ordenTrabajo->save();
-            }
         });
 
-        return redirect()->back()->with('success', 'Pago registrado correctamente.');
+        $ordenTrabajo->load('diagnostico.motocicleta.cliente');
+        Notificacion::aCliente($ordenTrabajo->cliente, 'pago',
+            "Registramos tu pago {$pago->nro_comprobante} de Bs " . number_format($pago->monto, 2) . " para la orden {$ordenTrabajo->nro_orden}.");
+
+        return back()->with('success', 'Pago registrado correctamente (' . $pago->nro_comprobante . ').')
+            ->with('abrir_orden_id', $ordenTrabajo->id)->with('abrir_tab', 'pagos');
     }
 }

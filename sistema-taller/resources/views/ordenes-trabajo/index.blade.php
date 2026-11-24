@@ -17,7 +17,7 @@
                             📋 Vista Tabla
                         </button>
                         <button @click="viewMode = 'kanban'" :class="viewMode === 'kanban' ? 'bg-white shadow text-indigo-600 font-semibold' : 'text-gray-600'" class="px-3 py-1.5 rounded-md text-xs transition">
-                            📊 Tablero Kanban (CU25)
+                            📊 Tablero Kanban
                         </button>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($ordenes as $orden)
                                 @php
-                                    $monto = $orden->monto_total > 0 ? $orden->monto_total : ($orden->cotizacion->total ?? $orden->cotizacion->monto_total ?? 241.00);
+                                    $monto = $orden->totalACobrar();
                                     $cot = $orden->cotizacion;
                                 @endphp
                                 <tr>
@@ -62,11 +62,11 @@
                                         <div class="text-xs text-gray-500">{{ $orden->created_at->format('Y-m-d H:i') }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <span class="font-semibold text-gray-800">COT:</span> {{ $cot->nro_cotizacion ?? 'COT-202611-001' }}
-                                        <div class="text-xs text-indigo-600 font-medium">Yamaha (4821ABC)</div>
+                                        <span class="font-semibold text-gray-800">COT:</span> {{ $cot->nro_cotizacion ?? '—' }}
+                                        <div class="text-xs text-indigo-600 font-medium">{{ $orden->motocicleta?->marca }} {{ $orden->motocicleta?->modelo }} ({{ $orden->motocicleta?->placa ?: 'sin placa' }})</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                                        ${{ number_format($monto, 2) }}
+                                        Bs {{ number_format($monto, 2) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full uppercase
@@ -98,7 +98,7 @@
                     </table>
                 </div>
 
-                <!-- ================= VISTA TABLERO KANBAN (CU25) ================= -->
+                <!-- ================= VISTA TABLERO KANBAN ================= -->
                 <div x-show="viewMode === 'kanban'" x-cloak class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                     <!-- Columna 1: Activas -->
@@ -114,15 +114,17 @@
                                         <span>{{ $orden->nro_orden }}</span>
                                         <button @click="openModal = 'modal-{{ $orden->id }}'" class="text-indigo-600 text-xs hover:underline">Ver Detalle</button>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">Yamaha (4821ABC)</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ $orden->motocicleta?->marca }} {{ $orden->motocicleta?->modelo }} ({{ $orden->motocicleta?->placa ?: 'sin placa' }})</p>
                                     <div class="mt-3 pt-2 border-t flex justify-between items-center">
-                                        @php $montoK = $orden->monto_total > 0 ? $orden->monto_total : 241.00; @endphp
-                                        <span class="text-xs font-bold text-emerald-600">${{ number_format($montoK, 2) }}</span>
+                                        @php $montoK = $orden->totalACobrar(); @endphp
+                                        <span class="text-xs font-bold text-emerald-600">Bs {{ number_format($montoK, 2) }}</span>
+                                        @can('permiso', ['ordenes', 'modificar'])
                                         <form action="{{ route('ordenes-trabajo.updateEstado', $orden->id) }}" method="POST">
                                             @csrf @method('PATCH')
                                             <input type="hidden" name="estado" value="en_proceso">
                                             <button type="submit" class="text-[10px] bg-yellow-500 text-white px-2 py-1 rounded font-semibold hover:bg-yellow-600 shadow-2xs">En Proceso ➔</button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </div>
                             @endforeach
@@ -142,15 +144,17 @@
                                         <span>{{ $orden->nro_orden }}</span>
                                         <button @click="openModal = 'modal-{{ $orden->id }}'" class="text-indigo-600 text-xs hover:underline">Ver Detalle</button>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">Yamaha (4821ABC)</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ $orden->motocicleta?->marca }} {{ $orden->motocicleta?->modelo }} ({{ $orden->motocicleta?->placa ?: 'sin placa' }})</p>
                                     <div class="mt-3 pt-2 border-t flex justify-between items-center">
-                                        @php $montoK = $orden->monto_total > 0 ? $orden->monto_total : 241.00; @endphp
-                                        <span class="text-xs font-bold text-emerald-600">${{ number_format($montoK, 2) }}</span>
+                                        @php $montoK = $orden->totalACobrar(); @endphp
+                                        <span class="text-xs font-bold text-emerald-600">Bs {{ number_format($montoK, 2) }}</span>
+                                        @can('permiso', ['ordenes', 'modificar'])
                                         <form action="{{ route('ordenes-trabajo.updateEstado', $orden->id) }}" method="POST">
                                             @csrf @method('PATCH')
                                             <input type="hidden" name="estado" value="completada">
                                             <button type="submit" class="text-[10px] bg-green-600 text-white px-2 py-1 rounded font-semibold hover:bg-green-700 shadow-2xs">Completar ➔</button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </div>
                             @endforeach
@@ -170,10 +174,10 @@
                                         <span>{{ $orden->nro_orden }}</span>
                                         <button @click="openModal = 'modal-{{ $orden->id }}'" class="text-indigo-600 text-xs hover:underline">Ver Detalle</button>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">Yamaha (4821ABC)</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ $orden->motocicleta?->marca }} {{ $orden->motocicleta?->modelo }} ({{ $orden->motocicleta?->placa ?: 'sin placa' }})</p>
                                     <div class="mt-3 pt-2 border-t flex justify-between items-center">
-                                        @php $montoK = $orden->monto_total > 0 ? $orden->monto_total : 241.00; @endphp
-                                        <span class="text-xs font-bold text-emerald-600">${{ number_format($montoK, 2) }}</span>
+                                        @php $montoK = $orden->totalACobrar(); @endphp
+                                        <span class="text-xs font-bold text-emerald-600">Bs {{ number_format($montoK, 2) }}</span>
                                         <a href="{{ route('ordenes-trabajo.comprobante', $orden->id) }}" target="_blank" class="text-[10px] bg-gray-900 text-white px-2 py-1 rounded font-bold hover:bg-gray-800 shadow-2xs">📄 Comprobante</a>
                                     </div>
                                 </div>
@@ -183,7 +187,7 @@
 
                 </div>
 
-                <!-- MODALES DE GARANTÍA Y RECLAMOS (CU30 / CU31) -->
+                <!-- MODALES DE GARANTÍA Y RECLAMOS -->
                 @foreach ($ordenes as $orden)
                     @php
                         $garantia = $orden->garantia;
@@ -235,6 +239,7 @@
                                 </div>
 
                                 <!-- Formulario de reclamo -->
+                                @if ($garantia->estaVigente() && Auth::user()->can('permiso', ['garantias', 'crear']))
                                 <form action="{{ route('reclamos-garantias.store', $garantia->id) }}" method="POST" style="margin-bottom: 16px;">
                                     @csrf
                                     <label style="display: block; font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 6px;">
@@ -254,6 +259,7 @@
                                         </button>
                                     </div>
                                 </form>
+                                @endif
 
                                 <!-- Historial de reclamos -->
                                 <div style="border-top: 1px solid #f1f5f9; padding-top: 12px;">
@@ -310,7 +316,7 @@
                 <!-- MODALES INDEPENDIENTES DE DETALLE Y TAREAS -->
                 @foreach ($ordenes as $orden)
                     @php
-                        $monto = $orden->monto_total > 0 ? $orden->monto_total : ($orden->cotizacion->total ?? $orden->cotizacion->monto_total ?? 241.00);
+                        $monto = $orden->totalACobrar();
                         $cot = $orden->cotizacion;
                         $pagosRealizados = $orden->pagos ?? collect();
                         $totalPagado = $pagosRealizados->sum('monto');
@@ -332,22 +338,25 @@
                                 <p><strong>Nro de Orden:</strong> {{ $orden->nro_orden }}</p>
                                 <p><strong>Estado Actual:</strong> <span class="uppercase font-semibold text-indigo-600">{{ str_replace('_', ' ', $orden->estado ?? 'activa') }}</span></p>
                                 <p><strong>Fecha de Creación:</strong> {{ $orden->created_at->format('Y-m-d H:i') }}</p>
-                                <p><strong>Cotización Origen:</strong> <span class="text-indigo-600 font-medium">{{ $cot->nro_cotizacion ?? 'COT-202611-001' }}</span></p>
-                                <p><strong>Motocicleta:</strong> Yamaha (4821ABC)</p>
+                                <p><strong>Cotización Origen:</strong> <span class="text-indigo-600 font-medium">{{ $cot->nro_cotizacion ?? '—' }}</span></p>
+                                <p><strong>Motocicleta:</strong> {{ $orden->motocicleta?->marca }} {{ $orden->motocicleta?->modelo }} ({{ $orden->motocicleta?->placa ?: 'sin placa' }})</p>
                             </div>
 
-                            <!-- Actualizar Estado Directo (CU25) -->
+                            <!-- Actualizar Estado Directo -->
                             <div class="bg-gray-100 p-3 rounded-md mb-4 flex items-center justify-between border border-gray-200">
-                                <span class="text-xs font-bold text-gray-700 uppercase">Cambiar Estado (CU25):</span>
+                                <span class="text-xs font-bold text-gray-700 uppercase">Cambiar Estado:</span>
+                                @can('permiso', ['ordenes', 'modificar'])
                                 <form action="{{ route('ordenes-trabajo.updateEstado', $orden->id) }}" method="POST" class="flex space-x-2">
                                     @csrf @method('PATCH')
                                     <select name="estado" class="text-xs rounded border-gray-300 py-1">
                                         <option value="activa" {{ $orden->estado == 'activa' ? 'selected' : '' }}>Activa</option>
                                         <option value="en_proceso" {{ $orden->estado == 'en_proceso' ? 'selected' : '' }}>En Proceso</option>
                                         <option value="completada" {{ $orden->estado == 'completada' ? 'selected' : '' }}>Completada</option>
+                                        <option value="entregada" {{ $orden->estado == 'entregada' ? 'selected' : '' }}>Entregada</option>
                                     </select>
                                     <button type="submit" style="background-color: #4f46e5 !important; color: #ffffff !important;" class="px-4 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-md hover:bg-indigo-700 uppercase tracking-wider shadow-sm transition">Actualizar</button>
                                 </form>
+                                @endcan
                             </div>
 
                             <!-- BOTONES DE PESTAÑAS ORIGINALES -->
@@ -356,21 +365,21 @@
                                         @click="activeTab = 'repuestos'"
                                         :style="activeTab === 'repuestos' ? 'background-color: #4f46e5 !important; color: #ffffff !important;' : 'background-color: #f3f4f6 !important; color: #374151 !important;'"
                                         class="px-3 py-2 rounded-md text-xs font-bold transition uppercase tracking-wider shadow-sm whitespace-nowrap">
-                                    📦 Repuestos (CU26)
+                                    📦 Repuestos
                                 </button>
 
                                 <button type="button"
                                         @click="activeTab = 'tareas'"
                                         :style="activeTab === 'tareas' ? 'background-color: #4f46e5 !important; color: #ffffff !important;' : 'background-color: #f3f4f6 !important; color: #374151 !important;'"
                                         class="px-3 py-2 rounded-md text-xs font-bold transition uppercase tracking-wider shadow-sm whitespace-nowrap">
-                                    🛠️ Tareas (CU24)
+                                    🛠️ Tareas
                                 </button>
 
                                 <button type="button"
                                         @click="activeTab = 'pagos'"
                                         :style="activeTab === 'pagos' ? 'background-color: #059669 !important; color: #ffffff !important;' : 'background-color: #f3f4f6 !important; color: #374151 !important;'"
                                         class="px-3 py-2 rounded-md text-xs font-bold transition uppercase tracking-wider shadow-sm whitespace-nowrap">
-                                    💳 Pagos (CU22)
+                                    💳 Pagos
                                 </button>
 
                                 <button type="button"
@@ -381,10 +390,11 @@
                                 </button>
                             </div>
 
-                            <!-- PESTAÑA 1: RECURSOS / REPUESTOS (CU26) -->
+                            <!-- PESTAÑA 1: RECURSOS / REPUESTOS -->
                             <div x-show="activeTab === 'repuestos'" class="space-y-4">
                                 <div class="bg-blue-50/50 border border-blue-100 rounded-lg p-4">
-                                    <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wider mb-3">🔧 CU26: Registrar Repuestos en la Orden</h4>
+                                    <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wider mb-3">🔧 Registrar repuestos utilizados</h4>
+                                    @can('permiso', ['ordenes', 'modificar'])
                                     <form action="{{ route('ordenes-trabajo.repuestos.store', $orden->id) }}" method="POST" class="space-y-3">
                                         @csrf
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -409,6 +419,7 @@
                                             </button>
                                         </div>
                                     </form>
+                                    @endcan
 
                                     <!-- Listado de Repuestos Adjuntos -->
                                     <div class="mt-4 pt-3 border-t border-blue-200">
@@ -435,8 +446,8 @@
                                                         <tr>
                                                             <td class="px-3 py-2 font-medium">{{ $ru->nombre }}</td>
                                                             <td class="px-3 py-2 text-center">{{ $ru->cantidad }}</td>
-                                                            <td class="px-3 py-2 text-right">${{ number_format($ru->precio_unitario, 2) }}</td>
-                                                            <td class="px-3 py-2 text-right font-semibold">${{ number_format($ru->cantidad * $ru->precio_unitario, 2) }}</td>
+                                                            <td class="px-3 py-2 text-right">Bs {{ number_format($ru->precio_unitario, 2) }}</td>
+                                                            <td class="px-3 py-2 text-right font-semibold">Bs {{ number_format($ru->cantidad * $ru->precio_unitario, 2) }}</td>
                                                         </tr>
                                                     @empty
                                                         <tr>
@@ -452,10 +463,11 @@
                                 </div>
                             </div>
 
-                            <!-- PESTAÑA 2: TAREAS Y MECÁNICOS (CU24) -->
+                            <!-- PESTAÑA 2: TAREAS Y MECÁNICOS -->
                             <div x-show="activeTab === 'tareas'" class="space-y-4" x-cloak>
                                 <div class="bg-indigo-50/50 border border-indigo-100 rounded-lg p-4">
-                                    <h4 class="text-xs font-bold text-indigo-900 uppercase tracking-wider mb-3">🛠️ CU24: Asignar Tarea Específica a Mecánico</h4>
+                                    <h4 class="text-xs font-bold text-indigo-900 uppercase tracking-wider mb-3">🛠️ Asignar tarea a un mecánico</h4>
+                                    @can('permiso', ['ordenes', 'modificar'])
                                     <form action="{{ route('tareas-servicios.store') }}" method="POST" class="space-y-3">
                                         @csrf
                                         <input type="hidden" name="orden_trabajo_id" value="{{ $orden->id }}">
@@ -486,6 +498,7 @@
                                             </button>
                                         </div>
                                     </form>
+                                    @endcan
 
                                     <!-- Listado de Tareas Asignadas -->
                                     <div class="mt-4 pt-3 border-t border-indigo-200">
@@ -533,6 +546,7 @@
                                                             </td>
                                                             <td class="px-3 py-2 text-right whitespace-nowrap space-x-2">
                                                                 @if($siguienteEstado)
+                                                                    @can('permiso', ['ordenes', 'modificar'])
                                                                     <form action="{{ route('tareas-servicios.estado', $ts->id) }}" method="POST" class="inline">
                                                                         @csrf
                                                                         @method('PATCH')
@@ -543,15 +557,18 @@
                                                                             {{ $textoBoton }}
                                                                         </button>
                                                                     </form>
+                                                                    @endcan
                                                                 @else
                                                                     <span class="text-green-700 font-bold text-[10px] uppercase">✓ Lista</span>
                                                                 @endif
 
+                                                                @can('permiso', ['ordenes', 'modificar'])
                                                                 <form action="{{ route('tareas-servicios.destroy', $ts->id) }}" method="POST" class="inline">
                                                                     @csrf
                                                                     @method('DELETE')
                                                                     <button type="submit" class="text-red-600 hover:text-red-900 font-bold">Eliminar</button>
                                                                 </form>
+                                                                @endcan
                                                             </td>
                                                         </tr>
                                                     @empty
@@ -568,28 +585,29 @@
                                 </div>
                             </div>
 
-                            <!-- PESTAÑA 3: REGISTRAR PAGOS (CU22) -->
+                            <!-- PESTAÑA 3: REGISTRAR PAGOS -->
                             <div x-show="activeTab === 'pagos'" class="space-y-4" x-cloak>
                                 <div class="bg-emerald-50/50 border border-emerald-100 rounded-lg p-4">
-                                    <h4 class="text-xs font-bold text-emerald-900 uppercase tracking-wider mb-3">💳 CU22: Registrar Pago de Cliente</h4>
+                                    <h4 class="text-xs font-bold text-emerald-900 uppercase tracking-wider mb-3">💳 Registrar pago del cliente</h4>
 
                                     <!-- Resumen de Saldos Compacto -->
                                     <div class="grid grid-cols-3 gap-3 mb-4 bg-white p-3 rounded-lg border border-emerald-200 text-center shadow-2xs">
                                         <div>
                                             <span class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total</span>
-                                            <span class="text-sm font-bold text-gray-800">$ {{ number_format($monto, 2) }}</span>
+                                            <span class="text-sm font-bold text-gray-800">Bs {{ number_format($monto, 2) }}</span>
                                         </div>
                                         <div class="border-x px-2">
                                             <span class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Pagado</span>
-                                            <span class="text-sm font-bold text-emerald-600">$ {{ number_format($totalPagado, 2) }}</span>
+                                            <span class="text-sm font-bold text-emerald-600">Bs {{ number_format($totalPagado, 2) }}</span>
                                         </div>
                                         <div>
                                             <span class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Pendiente</span>
-                                            <span class="text-sm font-bold text-red-600">$ {{ number_format($saldoPendiente, 2) }}</span>
+                                            <span class="text-sm font-bold text-red-600">Bs {{ number_format($saldoPendiente, 2) }}</span>
                                         </div>
                                     </div>
 
                                     @if($saldoPendiente > 0)
+                                        @can('permiso', ['pagos', 'crear'])
                                         <form action="{{ route('ordenes-trabajo.pagos.store', $orden->id) }}" method="POST" class="space-y-3 bg-white p-4 rounded-lg border border-emerald-200 shadow-2xs">
                                             <h5 class="text-xs font-bold text-emerald-900 uppercase tracking-wider mb-2">➕ Registrar Nuevo Cobro</h5>
                                             @csrf
@@ -619,6 +637,7 @@
                                                 </button>
                                             </div>
                                         </form>
+                                        @endcan
                                     @else
                                         <div class="bg-emerald-100 text-emerald-800 text-xs p-4 rounded text-center font-bold">
                                             🎉 Esta orden se encuentra totalmente pagada.
@@ -647,7 +666,7 @@
                                                         <td class="px-4 py-2.5">{{ $pago->created_at->format('Y-m-d H:i') }}</td>
                                                         <td class="px-4 py-2.5 uppercase font-semibold text-emerald-800">{{ $pago->metodo }}</td>
                                                         <td class="px-4 py-2.5">{{ $pago->observaciones ?? $pago->nro_comprobante ?? '-' }}</td>
-                                                        <td class="px-4 py-2.5 text-right font-bold text-emerald-600">$ {{ number_format($pago->monto, 2) }}</td>
+                                                        <td class="px-4 py-2.5 text-right font-bold text-emerald-600">Bs {{ number_format($pago->monto, 2) }}</td>
                                                     </tr>
                                                 @empty
                                                     <tr>
@@ -676,7 +695,7 @@
                                         <tbody class="divide-y divide-gray-200 text-gray-800">
                                             <tr>
                                                 <td class="px-4 py-2.5 font-medium">Monto Total de la Orden (Servicios y Repuestos)</td>
-                                                <td class="px-4 py-2.5 text-right font-bold text-emerald-600">${{ number_format($monto, 2) }}</td>
+                                                <td class="px-4 py-2.5 text-right font-bold text-emerald-600">Bs {{ number_format($monto, 2) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Gestión de Diagnósticos Técnicos (CU18)
+            Gestión de Diagnósticos Técnicos
         </h2>
     </x-slot>
 
@@ -9,10 +9,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Listado de Diagnósticos y Checklists</h2>
-                
+
+                @can('permiso', ['diagnosticos', 'crear'])
                 <a href="{{ route('diagnosticos.create') }}" style="background-color: #111827; color: #ffffff; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;" class="shadow hover:opacity-90 transition flex items-center gap-2">
                     + Registrar Diagnóstico
                 </a>
+                @endcan
             </div>
 
             @if(session('success'))
@@ -61,7 +63,7 @@
                                         notasElectrico: '{{ $diag->notas_electrico ?? 'Sin notas' }}',
                                         general: '{{ $diag->diagnostico_general }}',
                                         fecha: '{{ $diag->created_at->format('Y-m-d H:i') }}'
-                                    }" 
+                                    }"
                                             style="background-color: #111827; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;" class="shadow hover:opacity-90 transition inline-flex items-center gap-1.5">
                                         Ver Detalle
                                     </button>
