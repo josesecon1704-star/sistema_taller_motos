@@ -26,12 +26,24 @@ class Cliente extends Model
     {
         return $this->hasOne(User::class);
     }
+
     public function motocicletas()
     {
         return $this->hasMany(Motocicleta::class);
     }
+
     public function citas()
     {
         return $this->hasMany(Cita::class);
+    }
+
+    public function cotizaciones()
+    {
+        return $this->hasMany(Cotizacion::class);
+    }
+
+    public function garantias()
+    {
+        return $this->hasMany(Garantia::class);
     }
 }

@@ -12,18 +12,17 @@ use App\Http\Controllers\RepuestoController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
-
-
+use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\CotizacionController; // CU19
+use App\Http\Controllers\CitaController;
+use App\Http\Controllers\MantenimientoController; // CU17
+use App\Http\Controllers\DiagnosticoController; // CU18
+use App\Http\Controllers\OrdenTrabajoController; // CU23 / CU25 / CU26
+use App\Http\Controllers\TareaServicioController; // CU24
+use App\Http\Controllers\PagoController; // CU22
+use App\Http\Controllers\ReclamoGarantiaController;
 
 Route::redirect('/', '/login');
-
-
-//Route::get('/dashboard', function () {
-//    return view('dashboard');
-//})->middleware(['auth', 'verified'])->name('dashboard');
-
-
-
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -42,6 +41,60 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 //Servicios
 Route::middleware('auth')->group(function () {
+
+    //CITAS (CU15)
+    Route::resource('citas', CitaController::class)
+        ->parameters(['citas' => 'cita']);
+
+    Route::patch('citas/{cita}/estado', [CitaController::class, 'cambiarEstado'])
+        ->name('citas.estado');
+
+    //MANTENIMIENTOS (CU17)
+    Route::resource('mantenimientos', MantenimientoController::class)
+        ->parameters(['mantenimientos' => 'mantenimiento']);
+
+    //DIAGNOSTICOS (CU18)
+    Route::resource('diagnosticos', DiagnosticoController::class)
+        ->parameters(['diagnosticos' => 'diagnostico']);
+
+    //COTIZACIONES (CU19)
+    Route::resource('cotizaciones', CotizacionController::class)
+        ->parameters(['cotizacions' => 'cotizacion']);
+
+    Route::post('/cotizaciones/{id}/estado', [CotizacionController::class, 'cambiarEstado'])
+        ->name('cotizaciones.estado');
+
+    //ORDENES DE TRABAJO (CU23 / CU25)
+    Route::resource('ordenes-trabajo', OrdenTrabajoController::class)
+        ->parameters(['ordenes-trabajo' => 'ordenTrabajo']);
+
+    // CU27 - Ruta para ver e imprimir el reporte o comprobante de servicio
+    Route::get('/ordenes-trabajo/{ordenTrabajo}/comprobante', [OrdenTrabajoController::class, 'comprobante'])
+        ->name('ordenes-trabajo.comprobante');
+
+    // CU25 - Actualizar Estado de Orden de Trabajo
+    Route::patch('/ordenes-trabajo/{ordenTrabajo}/estado', [OrdenTrabajoController::class, 'updateEstado'])
+        ->name('ordenes-trabajo.updateEstado');
+
+    // CU26 - Registrar Repuestos en la Orden de Trabajo
+    Route::post('/ordenes-trabajo/{ordenTrabajo}/repuestos', [OrdenTrabajoController::class, 'storeRepuesto'])
+        ->name('ordenes-trabajo.repuestos.store');
+
+    // CU29 - Registrar Pago en la Orden de Trabajo
+    Route::post('/ordenes-trabajo/{ordenTrabajo}/pagos', [PagoController::class, 'store'])
+        ->name('ordenes-trabajo.pagos.store');
+
+    // CU30 / CU31 - Registrar Reclamo de Garantía
+    Route::post('/garantias/{garantia}/reclamos', [ReclamoGarantiaController::class, 'store'])
+        ->name('reclamos-garantias.store');
+
+    //TAREAS DE SERVICIO / ASIGNAR A MECÁNICOS (CU24)
+    Route::post('/tareas-servicios', [TareaServicioController::class, 'store'])
+        ->name('tareas-servicios.store');
+    Route::patch('/tareas-servicios/{tareaServicio}/estado', [TareaServicioController::class, 'cambiarEstado'])
+        ->name('tareas-servicios.estado');
+    Route::delete('/tareas-servicios/{tareaServicio}', [TareaServicioController::class, 'destroy'])
+        ->name('tareas-servicios.destroy');
 
     //SERVICIOS
     Route::resource('servicios', ServicioController::class)
@@ -128,7 +181,9 @@ Route::middleware('auth')->group(function () {
         ->only(['index', 'edit', 'update'])
         ->parameters(['usuarios' => 'usuario']);
     Route::patch('usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])->name('usuarios.estado');
-});
 
+    //notificaciones
+    Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notifications.index');
+});
 
 require __DIR__ . '/auth.php';

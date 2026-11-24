@@ -2,27 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Mantenimiento extends Model
 {
+    use HasFactory;
+
+    protected $table = 'mantenimientos';
+
     protected $fillable = [
         'motocicleta_id',
-        'servicio_id',
-        'intervalo_km',
-        'intervalo_mes',
-        'ultimo_km',
+        'tipo_mantenimiento',
         'proximo_km',
-        'ultima_fecha',
         'proxima_fecha',
         'estado',
     ];
 
-    public function motocicleta(){
+    public function motocicleta()
+    {
         return $this->belongsTo(Motocicleta::class);
-    }
-
-    public function servicio(){
-        return $this->belongsTo(Servicio::class);
     }
 }

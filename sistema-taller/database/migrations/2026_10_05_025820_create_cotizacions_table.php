@@ -26,6 +26,7 @@ return new class extends Migration
             $table->text('observaciones')->nullable();
 
             $table->foreignId('diagnostico_id')->constrained('diagnosticos')->restrictOnDelete();
+            // Nota: Asegúrate de que tu tabla de órdenes de trabajo se llame 'orden_trabajos' o cámbiala si es 'ordenes_trabajo'
             $table->foreignId('orden_trabajo_id')->nullable()->constrained('orden_trabajos')->restrictOnDelete();
             $table->timestamps();
 

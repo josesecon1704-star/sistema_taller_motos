@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -25,5 +25,14 @@ class DatabaseSeeder extends Seeder
             ProveedorSeeder::class,
             RepuestoSeeder::class,
         ]);
+
+        // Asegurar siempre un acceso administrador garantizado al terminar
+        User::updateOrCreate(
+            ['email' => 'admin@taller.com'],
+            [
+                'name' => 'Administrador',
+                'password' => Hash::make('password123')
+            ]
+        );
     }
 }

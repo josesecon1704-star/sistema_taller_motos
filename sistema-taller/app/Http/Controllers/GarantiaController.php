@@ -12,7 +12,9 @@ class GarantiaController extends Controller
      */
     public function index()
     {
-        //
+        $garantias = Garantia::with(['ordenTrabajo', 'cliente', 'reclamos'])->latest()->get();
+
+        return view('garantias.index', compact('garantias'));
     }
 
     /**
@@ -36,7 +38,9 @@ class GarantiaController extends Controller
      */
     public function show(Garantia $garantia)
     {
-        //
+        $garantia->load(['ordenTrabajo', 'cliente', 'reclamos']);
+
+        return response()->json($garantia);
     }
 
     /**
@@ -52,7 +56,16 @@ class GarantiaController extends Controller
      */
     public function update(Request $request, Garantia $garantia)
     {
-        //
+        $request->validate([
+            'dias' => 'nullable|integer|min:1',
+            'km' => 'nullable|integer|min:1',
+            'cobertura' => 'nullable|string|max:255',
+            'estado' => 'nullable|string|in:activa,vencida,anulada',
+        ]);
+
+        $garantia->update($request->only(['dias', 'km', 'cobertura', 'estado']));
+
+        return redirect()->back()->with('success', 'Garantía actualizada correctamente.');
     }
 
     /**

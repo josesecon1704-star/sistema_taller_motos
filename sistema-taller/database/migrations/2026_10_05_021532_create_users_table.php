@@ -26,11 +26,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Regla: la cuenta es de un cliente O de un empleado, exactamente uno
-        DB::statement('ALTER TABLE users ADD CONSTRAINT users_cliente_o_empleado CHECK (
-            (cliente_id IS NOT NULL AND empleado_id IS NULL) OR
-            (cliente_id IS NULL AND empleado_id IS NOT NULL)
-        )');
+        // Regla: la cuenta es de un cliente O de un empleado, exactamente uno (omitido en SQLite)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE users ADD CONSTRAINT users_cliente_o_empleado CHECK (
+                (cliente_id IS NOT NULL AND empleado_id IS NULL) OR
+                (cliente_id IS NULL AND empleado_id IS NOT NULL)
+            )');
+        }
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -46,8 +48,6 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
-
-        
     }
 
     /**
@@ -58,7 +58,4 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('sessions');
     }
-
-
-    
 };

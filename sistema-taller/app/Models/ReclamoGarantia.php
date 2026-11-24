@@ -15,11 +15,22 @@ class ReclamoGarantia extends Model
         'estado',
     ];
 
-    public function garantia(){
+    protected $casts = [
+        'fecha' => 'date',
+    ];
+
+    public function garantia()
+    {
         return $this->belongsTo(Garantia::class);
     }
-    
-    public function ordenReparacion(){
-        return $this->belongsTo(OrdenTrabajo::class);
+
+    public function ordenTrabajo()
+    {
+        return $this->belongsTo(OrdenTrabajo::class, 'orden_trabajo_id');
+    }
+
+    public function ordenReparacion()
+    {
+        return $this->belongsTo(OrdenTrabajo::class, 'orden_trabajo_id');
     }
 }

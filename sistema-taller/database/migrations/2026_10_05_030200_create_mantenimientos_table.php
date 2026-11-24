@@ -12,19 +12,21 @@ return new class extends Migration {
     {
         Schema::create('mantenimientos', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('motocicleta_id')->constrained('motocicletas')->cascadeOnDelete();
+            $table->foreignId('servicio_id')->nullable()->constrained('servicios')->nullOnDelete();
+            $table->string('tipo_mantenimiento'); // Descripción o nombre del mantenimiento preventivo
+            
+            // Intervalos y control de alertas
             $table->unsignedSmallInteger('intervalo_km')->nullable();
-            $table->unsignedTinyInteger('intervalo_mes')->nullable();
             $table->unsignedMediumInteger('ultimo_km')->nullable();
             $table->unsignedMediumInteger('proximo_km')->nullable();
             $table->date('ultima_fecha')->nullable();
-            $table->date('proxima_fecha')->nullable();
-            $table->string('estado', 20)->default('activo');
+            $table->date('proxima_fecha'); // Fecha límite fundamental para la alerta por tiempo
             
-            $table->foreignId('motocicleta_id')->constrained('motocicletas')->restrictOnDelete();
-            $table->foreignId('servicio_id')->constrained('servicios')->restrictOnDelete();
+            // Estados adaptados para el CU17 (PENDIENTE, COMPLETADO, VENCIDO)
+            $table->string('estado', 20)->default('PENDIENTE');
+            
             $table->timestamps();
-
-            $table->unique(['motocicleta_id', 'servicio_id']);
         });
     }
 

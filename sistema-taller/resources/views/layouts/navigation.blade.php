@@ -1,16 +1,22 @@
 @php
     $esCliente = Auth::user()->esCliente();
     $items = [
-        ['modulo' => null,           'ruta' => 'dashboard',    'activo' => 'dashboard',      'icono' => '🏠', 'texto' => 'Inicio'],
-        ['modulo' => 'servicios',    'ruta' => 'servicios.index',    'activo' => 'servicios.*',    'icono' => '🔧', 'texto' => 'Servicios'],
-        ['modulo' => 'repuestos',    'ruta' => 'repuestos.index',    'activo' => 'repuestos.*',    'icono' => '📦', 'texto' => 'Repuestos'],
-        ['modulo' => 'proveedores',  'ruta' => 'proveedores.index',  'activo' => 'proveedores.*',  'icono' => '🚚', 'texto' => 'Proveedores'],
-        ['modulo' => 'clientes',     'ruta' => 'clientes.index',     'activo' => 'clientes.*',     'icono' => '👥', 'texto' => 'Clientes'],
-        ['modulo' => 'empleados',    'ruta' => 'empleados.index',    'activo' => 'empleados.*',    'icono' => '🧑‍🔧', 'texto' => 'Empleados'],
-        ['modulo' => 'motocicletas', 'ruta' => 'motocicletas.index', 'activo' => 'motocicletas.*', 'icono' => '🏍️', 'texto' => $esCliente ? 'Mis motocicletas' : 'Motocicletas'],
-        ['modulo' => 'usuarios',     'ruta' => 'usuarios.index',     'activo' => 'usuarios.*',     'icono' => '👤', 'texto' => 'Usuarios'],
-        ['modulo' => 'bitacora',     'ruta' => 'bitacora.index',     'activo' => 'bitacora.*',     'icono' => '📋', 'texto' => 'Bitácora'],
-        ['modulo' => 'roles',        'ruta' => 'roles.index',        'activo' => 'roles.*',        'icono' => '🔐', 'texto' => 'Roles y permisos'],
+        ['modulo' => null,           'ruta' => 'dashboard',          'activo' => 'dashboard',         'icono' => '🏠', 'texto' => 'Inicio'],
+        ['modulo' => 'servicios',    'ruta' => 'servicios.index',    'activo' => 'servicios.*',       'icono' => '🔧', 'texto' => 'Servicios'],
+        ['modulo' => 'repuestos',    'ruta' => 'repuestos.index',    'activo' => 'repuestos.*',       'icono' => '📦', 'texto' => 'Repuestos'],
+        ['modulo' => 'proveedores',  'ruta' => 'proveedores.index',  'activo' => 'proveedores.*',     'icono' => '🚚', 'texto' => 'Proveedores'],
+        ['modulo' => 'clientes',     'ruta' => 'clientes.index',     'activo' => 'clientes.*',        'icono' => '👥', 'texto' => 'Clientes'],
+        ['modulo' => 'empleados',    'ruta' => 'empleados.index',    'activo' => 'empleados.*',       'icono' => '🧑‍🔧', 'texto' => 'Empleados'],
+        ['modulo' => 'motocicletas', 'ruta' => 'motocicletas.index', 'activo' => 'motocicletas.*',    'icono' => '🏍️', 'texto' => $esCliente ? 'Mis motocicletas' : 'Motocicletas'],
+        ['modulo' => 'citas',        'ruta' => 'citas.index',        'activo' => 'citas.*',           'icono' => '📅', 'texto' => 'Citas'],
+        ['modulo' => 'mantenimientos','ruta' => 'mantenimientos.index','activo' => 'mantenimientos.*','icono' => '🛠️', 'texto' => 'Mantenimientos'],
+        ['modulo' => 'diagnosticos', 'ruta' => 'diagnosticos.index', 'activo' => 'diagnosticos.*',    'icono' => '📋', 'texto' => 'Diagnósticos'],
+        ['modulo' => null,           'ruta' => 'cotizaciones.index', 'activo' => 'cotizaciones.*',    'icono' => '📋', 'texto' => 'Cotizaciones'],
+        ['modulo' => null,           'ruta' => 'ordenes-trabajo.index', 'activo' => 'ordenes-trabajo.*', 'icono' => '📝', 'texto' => 'Órdenes de Trabajo'],
+        ['modulo' => 'usuarios',     'ruta' => 'usuarios.index',     'activo' => 'usuarios.*',        'icono' => '👤', 'texto' => 'Usuarios'],
+        ['modulo' => 'bitacora',     'ruta' => 'bitacora.index',     'activo' => 'bitacora.*',        'icono' => '📋', 'texto' => 'Bitácora'],
+        ['modulo' => 'roles',        'ruta' => 'roles.index',        'activo' => 'roles.*',           'icono' => '🔐', 'texto' => 'Roles y permisos'],
+        ['modulo' => null,           'ruta' => 'notifications.index','activo' => 'notifications.*',   'icono' => '🔔', 'texto' => 'Notificaciones'],
     ];
 @endphp
 
@@ -53,7 +59,7 @@
                     @php $activo = request()->routeIs($item['activo']); @endphp
                     <a href="{{ route($item['ruta']) }}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
-                              {{ $activo ? 'bg-white text-gray-900' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                            {{ $activo ? 'bg-white text-gray-900' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <span class="w-6 text-center text-lg leading-none">{{ $item['icono'] }}</span>
                         <span>{{ $item['texto'] }}</span>
                     </a>
@@ -70,7 +76,7 @@
 
             <a href="{{ route('profile.edit') }}"
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
-                      {{ request()->routeIs('profile.*') ? 'bg-white text-gray-900' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                     {{ request()->routeIs('profile.*') ? 'bg-white text-gray-900' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                 <span class="w-6 text-center text-lg leading-none">⚙️</span>
                 <span>Mi perfil</span>
             </a>

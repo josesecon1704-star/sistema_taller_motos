@@ -3,63 +3,60 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pago;
+use App\Models\OrdenTrabajo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PagoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(Request $request, OrdenTrabajo $ordenTrabajo)
     {
-        //
-    }
+        $request->validate([
+            'monto' => 'required|numeric|min:0.01',
+            'metodo' => 'required|string|in:efectivo,qr,transferencia',
+            'referencia' => 'nullable|string|max:255',
+        ]);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        // Calcular total de la orden
+        $montoTotal = $ordenTrabajo->monto_total > 0 
+            ? $ordenTrabajo->monto_total 
+            : ($ordenTrabajo->cotizacion->total ?? $ordenTrabajo->cotizacion->monto_total ?? 241.00);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        // Calcular lo que ya se ha pagado
+        $totalPagado = $ordenTrabajo->pagos()->sum('monto');
+        $saldoPendiente = $montoTotal - $totalPagado;
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Pago $pago)
-    {
-        //
-    }
+        // Validar que no pague más de lo debido
+        if ($request->monto > $saldoPendiente) {
+            return redirect()->back()->withErrors(['error' => 'El monto ingresado excede el saldo pendiente ($ ' . number_format($saldoPendiente, 2) . ').']);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Pago $pago)
-    {
-        //
-    }
+        DB::transaction(function () use ($request, $ordenTrabajo) {
+            // Generar número de comprobante único
+            $comprobante = $request->referencia 
+                ? 'COMP-' . strtoupper($request->referencia) 
+                : 'COMP-' . strtoupper(uniqid());
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Pago $pago)
-    {
-        //
-    }
+            Pago::create([
+                'orden_trabajo_id' => $ordenTrabajo->id,
+                'tipo' => 'ingreso', // <--- Añadido para cumplir con la columna obligatoria 'tipo'
+                'monto' => $request->monto,
+                'metodo' => $request->metodo,
+                'fecha_pago' => now(),
+                'nro_comprobante' => $comprobante,
+                'observaciones' => $request->referencia ? 'Ref: ' . $request->referencia : 'Pago en ' . $request->metodo,
+            ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pago $pago)
-    {
-        //
+            // Si se cubrió el total, actualizar el estado de la orden
+            $nuevoTotalPagado = $ordenTrabajo->pagos()->sum('monto');
+            $montoTotalActual = $ordenTrabajo->monto_total > 0 ? $ordenTrabajo->monto_total : 241.00;
+
+            if ($nuevoTotalPagado >= $montoTotalActual) {
+                $ordenTrabajo->estado = 'completada';
+                $ordenTrabajo->save();
+            }
+        });
+
+        return redirect()->back()->with('success', 'Pago registrado correctamente.');
     }
 }

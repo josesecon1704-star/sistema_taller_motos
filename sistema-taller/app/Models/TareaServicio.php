@@ -10,6 +10,7 @@ class TareaServicio extends Model
         'orden_trabajo_id',
         'servicio_id',
         'empleado_id',
+        'descripcion',
         'precio_mano_obra',
         'estado',
         'fecha_inicio',
@@ -17,15 +18,18 @@ class TareaServicio extends Model
         'observaciones',
     ];
 
-    public function ordenTrabajo(){
+    public function ordenTrabajo()
+    {
         return $this->belongsTo(OrdenTrabajo::class);
     }
-    
-    public function servicio(){
+
+    public function servicio()
+    {
         return $this->belongsTo(Servicio::class);
     }
 
-    public function empleado(){
+    public function empleado()
+    {
         return $this->belongsTo(Empleado::class);
     }
 }

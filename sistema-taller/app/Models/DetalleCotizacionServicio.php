@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DetalleCotizacionServicio extends Model
 {
+    use HasFactory;
+
+    protected $table = 'detalle_cotizacion_servicios';
+
     protected $fillable = [
         'cotizacion_id',
         'servicio_id',
@@ -13,11 +18,13 @@ class DetalleCotizacionServicio extends Model
         'observaciones',
     ];
 
-    public function cotizacion(){
-        return $this->belongsTo(Cotizacion::class);
+    public function cotizacion()
+    {
+        return $this->belongsTo(Cotizacion::class, 'cotizacion_id');
     }
 
-    public function servicio(){
-        return $this->belongsTo(Servicio::class);
+    public function servicio()
+    {
+        return $this->belongsTo(Servicio::class, 'servicio_id');
     }
 }

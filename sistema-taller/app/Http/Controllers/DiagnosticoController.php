@@ -3,63 +3,55 @@
 namespace App\Http\Controllers;
 
 use App\Models\Diagnostico;
+use App\Models\Motocicleta;
+use App\Models\Cita;
+use App\Models\Empleado;
 use Illuminate\Http\Request;
 
 class DiagnosticoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $diagnosticos = Diagnostico::with('motocicleta')->latest()->paginate(10);
+        return view('diagnosticos.index', compact('diagnosticos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $motocicletas = Motocicleta::all();
+        return view('diagnosticos.create', compact('motocicletas'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'motocicleta_id' => 'required|exists:motocicletas,id',
+            'kilometraje_ingreso' => 'required|integer|min:0',
+            'estado_motor' => 'required|string',
+            'notas_motor' => 'nullable|string',
+            'estado_frenos' => 'required|string',
+            'notas_frenos' => 'nullable|string',
+            'estado_electrico' => 'required|string',
+            'notas_electrico' => 'nullable|string',
+            'diagnostico_general' => 'required|string',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Diagnostico $diagnostico)
-    {
-        //
-    }
+        Diagnostico::create([
+            'motocicleta_id' => $request->motocicleta_id,
+            'kilometraje_ingreso' => $request->kilometraje_ingreso,
+            'estado_motor' => $request->estado_motor,
+            'notas_motor' => $request->notas_motor,
+            'estado_frenos' => $request->estado_frenos,
+            'notas_frenos' => $request->notas_frenos,
+            'estado_electrico' => $request->estado_electrico,
+            'notas_electrico' => $request->notas_electrico,
+            'diagnostico_general' => $request->diagnostico_general,
+            'fecha_diagnostico' => now()->toDateString(),
+            'descripcion_falla' => $request->descripcion_falla ?? 'Revisión y diagnóstico técnico general por sistemas',
+            'cita_id' => Cita::first()->id ?? 1,
+            'empleado_id' => Empleado::first()->id ?? 1, // <-- Asignamos un empleado por defecto para PostgreSQL
+        ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Diagnostico $diagnostico)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Diagnostico $diagnostico)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Diagnostico $diagnostico)
-    {
-        //
+        return redirect()->route('diagnosticos.index')->with('success', '¡Diagnóstico técnico registrado con éxito!');
     }
 }

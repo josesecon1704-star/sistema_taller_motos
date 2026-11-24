@@ -25,12 +25,20 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($cuentas as $c) {
-            User::firstOrCreate(['email' => $c['email']], [
-                'password' => Hash::make(env('SEED_PASSWORD', 'password')),
-                'estado' => 'activo',
-                'rol_id' => Rol::where('nombre', $c['rol'])->value('id'),
-                'empleado_id' => Empleado::where('ci', $c['ci'])->value('id'),
-            ]);
+            // Buscamos el rol de forma segura
+            $rolId = Rol::where('nombre', $c['rol'])->value('id');
+            // Buscamos el empleado de forma segura
+            $empleadoId = Empleado::where('ci', $c['ci'])->value('id');
+
+            User::updateOrCreate(
+                ['email' => $c['email']], 
+                [
+                    'password' => Hash::make('password123'), // Contraseña fija y segura
+                    'estado' => 'activo',
+                    'rol_id' => $rolId,
+                    'empleado_id' => $empleadoId,
+                ]
+            );
         }
 
         // Cliente de prueba, para probar el rol Cliente
@@ -39,11 +47,16 @@ class UserSeeder extends Seeder
             ['nombre' => 'Cliente de Prueba', 'telefono' => '70000010', 'tipo' => 'particular']
         );
 
-        User::firstOrCreate(['email' => 'cliente@taller.com'], [
-            'password' => Hash::make('password'),
-            'estado' => 'activo',
-            'rol_id' => Rol::where('nombre', 'Cliente')->value('id'),
-            'cliente_id' => $cliente->id,
-        ]);
+        $rolClienteId = Rol::where('nombre', 'Cliente')->value('id');
+
+        User::updateOrCreate(
+            ['email' => 'cliente@taller.com'], 
+            [
+                'password' => Hash::make('password123'),
+                'estado' => 'activo',
+                'rol_id' => $rolClienteId,
+                'cliente_id' => $cliente->id,
+            ]
+        );
     }
 }
